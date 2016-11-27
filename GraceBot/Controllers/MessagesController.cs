@@ -21,7 +21,7 @@ namespace GraceBot.Controllers
             try
             {
                 var app = new Factory().GetApp(activity);
-                await app.Run();
+                await app.RunAsync();
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
             catch (Exception e)

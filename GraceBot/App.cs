@@ -19,7 +19,7 @@ namespace GraceBot
             _extendedActivity = extendedActivity;
         }
 
-        public async Task Run()
+        public async Task RunAsync()
         {
             var filter = _factory.GetActivityFilter();
             if (_extendedActivity.Type == ActivityTypes.Message && await filter.FilterAsync(_extendedActivity))

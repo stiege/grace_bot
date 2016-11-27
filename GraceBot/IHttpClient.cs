@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GraceBot
 {
-    public interface IHttpClient : IDisposable
+    internal interface IHttpClient : IDisposable
     {
         Task<HttpResponseMessage> GetAsync(string uri);
     }

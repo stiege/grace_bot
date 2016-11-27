@@ -5,6 +5,6 @@ namespace GraceBot
 {
     internal interface IApp
     {
-        Task Run();
+        Task RunAsync();
     }
 }

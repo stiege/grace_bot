@@ -8,6 +8,13 @@ namespace GraceBot
 {
     internal class ActivityFilter : IFilter
     {
+        private IFactory _factory;
+
+        public ActivityFilter(IFactory factory)
+        {
+            _factory = factory;
+        }
+
         public async Task<bool> FilterAsync(IExtendedActivity activity)
         {
             if (
@@ -16,8 +23,7 @@ namespace GraceBot
             {
                 return await Task.FromResult(true);
             }
-            var connector = new ConnectorClient(new Uri(activity.ServiceUrl));
-            await connector.Conversations.ReplyToActivityAsync((Activity)activity.CreateReply("..."));
+            await _factory.RespondAsync("...", activity);
             return await Task.FromResult(false);
         }
     }
