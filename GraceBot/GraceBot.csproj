@@ -118,11 +118,18 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActivityFilter.cs" />
+    <Compile Include="App.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
+    <Compile Include="ExtendedActivity.cs" />
+    <Compile Include="Factory.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="IApp.cs" />
+    <Compile Include="IExtendedActivity.cs" />
+    <Compile Include="IFilter.cs" />
     <Compile Include="LuisResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

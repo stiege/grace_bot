@@ -5,7 +5,7 @@ using System.Web;
 
 namespace GraceBot
 {
-    public class LuisResponse
+    internal class LuisResponse
     {
         public string query { get; set; }
         public Intent topScoringIntent { get; set; }
@@ -14,14 +14,14 @@ namespace GraceBot
         public Dialog dialog { get; set; }
     }
 
-    public class Action
+    internal class Action
     {
         public bool triggered { get; set; }
         public string name { get; set; }
         public Parameter[] parameters { get; set; }
     }
 
-    public class Parameter
+    internal class Parameter
     {
         public string name { get; set; }
         public string type { get; set; }
@@ -29,31 +29,31 @@ namespace GraceBot
         public Value[] value { get; set; }
     }
 
-    public class Value
+    internal class Value
     {
         public string entity { get; set; }
         public string type { get; set; }
         public Resolution resolution { get; set; }
     }
 
-    public class Resolution
+    internal class Resolution
     {
     }
 
-    public class Dialog
+    internal class Dialog
     {
         public string contextId { get; set; }
         public string status { get; set; }
     }
 
-    public class Intent
+    internal class Intent
     {
         public string intent { get; set; }
         public float score { get; set; }
         public Action[] actions { get; set; }
     }
 
-    public class Entity
+    internal class Entity
     {
         public string entity { get; set; }
         public string type { get; set; }
@@ -62,5 +62,4 @@ namespace GraceBot
         public float score { get; set; }
         public Resolution resolution { get; set; }
     }
-
 }
