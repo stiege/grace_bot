@@ -1,0 +1,6 @@
+[submodule "GraceBot/BadWords"]
+	path = GraceBot/BadWords
+	url = https://github.com/stiege/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words.git
+[submodule "GraceBot/Words"]
+	path = GraceBot/Words
+	url = https://github.com/stiege/dictionary.git
