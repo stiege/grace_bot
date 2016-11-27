@@ -127,9 +127,12 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="GraceHttpClient.cs" />
     <Compile Include="IApp.cs" />
     <Compile Include="IExtendedActivity.cs" />
+    <Compile Include="IFactory.cs" />
     <Compile Include="IFilter.cs" />
+    <Compile Include="IHttpClient.cs" />
     <Compile Include="LuisResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

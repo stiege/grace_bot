@@ -20,7 +20,7 @@ namespace GraceBot.Controllers
         {
             try
             {
-                var app = Factory.GetApp(activity);
+                var app = new Factory().GetApp(activity);
                 await app.Run();
                 return Request.CreateResponse(HttpStatusCode.OK);
             }

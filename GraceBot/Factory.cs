@@ -1,18 +1,25 @@
 ﻿using System;
+using System.Net.Http;
 using Microsoft.Bot.Connector;
 
 namespace GraceBot
 {
-    internal static class Factory
+    internal class Factory: IFactory
     {
-        internal static IFilter GetActivityFilter()
+
+        public IHttpClient GetHttpClient()
         {
-            return new ActivityFilter();
+            return new GraceHttpClient(new HttpClient());
         }
 
-        internal static IApp GetApp(Activity activity)
+        internal IApp GetApp(Activity activity)
         {
-            return new App(new ExtendedActivity(activity));
+            return new App(this, new ExtendedActivity(activity));
+        }
+
+        public IFilter GetActivityFilter()
+        {
+            return new ActivityFilter();
         }
     }
 }

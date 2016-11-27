@@ -10,16 +10,18 @@ namespace GraceBot
 {
     internal class App : IApp
     {
-        private readonly ExtendedActivity _extendedActivity;
+        private readonly IFactory _factory;
+        private readonly IExtendedActivity _extendedActivity;
 
-        internal App(ExtendedActivity extendedActivity)
+        internal App(IFactory factory, IExtendedActivity extendedActivity)
         {
+            _factory = factory;
             _extendedActivity = extendedActivity;
         }
 
         public async Task Run()
         {
-            var filter = Factory.GetActivityFilter();
+            var filter = _factory.GetActivityFilter();
             if (_extendedActivity.Type == ActivityTypes.Message && await filter.FilterAsync(_extendedActivity))
             {
                 await ProcessActivityAsync();
@@ -38,7 +40,7 @@ namespace GraceBot
                 "?subscription-key=" +
                 Environment.GetEnvironmentVariable("LUIS_KEY") + "&q=" +
                 strEscaped + "&verbose=true";
-            using (var client = new HttpClient())
+            using (var client = _factory.GetHttpClient())
             {
                 var msg = await client.GetAsync(uri);
                 if (msg.IsSuccessStatusCode)
