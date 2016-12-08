@@ -17,11 +17,24 @@ namespace GraceBot.Tests
         {
             var mockActivity = new Mock<IExtendedActivity>();
             var mockFactory = new Mock<IFactory>();
-            mockActivity.Setup(a => a.Text).Returns("What does xxx mean?");
+            mockActivity.Setup(a => a.Text).Returns("What does badword mean?");
             mockActivity.Setup(a => a.Type).Returns(ActivityTypes.Message);
-            mockFactory.Setup(f => f.GetActivityFilter()).Returns(new ActivityFilter(mockFactory.Object));
-            await new App(mockFactory.Object, mockActivity.Object).RunAsync();
+            mockFactory.Setup(f => f.GetActivityFilter()).Returns(new ActivityFilter(mockFactory.Object, new [] {"badword"}));
+            var app = new App(mockFactory.Object);
+            await app.RunAsync(mockActivity.Object);
             mockFactory.Verify(f => f.RespondAsync("...", mockActivity.Object));
+        }
+
+        /// <summary>
+        /// The app should get an activity filter as soon as it is created so that this
+        /// is not done every time a new request is received.
+        /// </summary>
+        [Test]
+        public void CreateFilterOnStartup()
+        {
+            var mockFactory = new Mock<IFactory>();
+            new App(mockFactory.Object);
+            mockFactory.Verify(f => f.GetActivityFilter());
         }
     }
 }
