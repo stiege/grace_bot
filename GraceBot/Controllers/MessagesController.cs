@@ -20,8 +20,8 @@ namespace GraceBot.Controllers
         {
             try
             {
-                var app = new Factory().GetApp(activity);
-                await app.RunAsync();
+                var app = Factory.GetFactory().GetApp();
+                await app.RunAsync(new ExtendedActivity(activity));
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
             catch (Exception e)
@@ -29,7 +29,6 @@ namespace GraceBot.Controllers
                 Debug.WriteLine(e);
                 return Request.CreateResponse(HttpStatusCode.InternalServerError);
             }
-
         }
     }
 }

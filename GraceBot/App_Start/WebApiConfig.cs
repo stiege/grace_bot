@@ -32,6 +32,7 @@ namespace GraceBot
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
+            Factory.GetFactory().GetApp();
         }
     }
 }

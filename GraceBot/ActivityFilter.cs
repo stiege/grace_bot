@@ -8,18 +8,18 @@ namespace GraceBot
 {
     internal class ActivityFilter : IFilter
     {
-        private IFactory _factory;
+        private readonly string[] _badWords;
+        private readonly IFactory _factory;
 
-        public ActivityFilter(IFactory factory)
+        public ActivityFilter(IFactory factory, string[] badWords)
         {
             _factory = factory;
+            _badWords = badWords;
         }
 
         public async Task<bool> FilterAsync(IExtendedActivity activity)
         {
-            if (
-                !File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + "\\BadWords\\en")
-                    .Any(badWord => activity.Text.ToLower().Contains(badWord.ToLower())))
+            if (!_badWords.Any(badWord => activity.Text.ToLower().Contains(badWord.ToLower())))
             {
                 return await Task.FromResult(true);
             }

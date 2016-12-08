@@ -11,18 +11,19 @@ namespace GraceBot
     internal class App : IApp
     {
         private readonly IFactory _factory;
-        private readonly IExtendedActivity _extendedActivity;
+        private readonly IFilter _filter;
+        private IExtendedActivity _extendedActivity;
 
-        internal App(IFactory factory, IExtendedActivity extendedActivity)
+        public App(IFactory factory)
         {
             _factory = factory;
-            _extendedActivity = extendedActivity;
+            _filter = _factory.GetActivityFilter();
         }
 
-        public async Task RunAsync()
+        public async Task RunAsync(IExtendedActivity activity)
         {
-            var filter = _factory.GetActivityFilter();
-            if (_extendedActivity.Type == ActivityTypes.Message && await filter.FilterAsync(_extendedActivity))
+            _extendedActivity = activity;
+            if (_extendedActivity.Type == ActivityTypes.Message && await _filter.FilterAsync(_extendedActivity))
             {
                 await ProcessActivityAsync();
             }
