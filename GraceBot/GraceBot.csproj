@@ -121,6 +121,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActivityDefinition.cs" />
     <Compile Include="ActivityFilter.cs" />
     <Compile Include="App.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
@@ -132,6 +133,7 @@
     </Compile>
     <Compile Include="GraceHttpClient.cs" />
     <Compile Include="IApp.cs" />
+    <Compile Include="IDefinition.cs" />
     <Compile Include="IExtendedActivity.cs" />
     <Compile Include="IFactory.cs" />
     <Compile Include="IFilter.cs" />

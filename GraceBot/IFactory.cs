@@ -9,5 +9,6 @@ namespace GraceBot
         IHttpClient GetHttpClient();
         Task RespondAsync(string s, IExtendedActivity activity);
         IApp GetApp();
+        IDefinition GetActivityDefinition();
     }
 }
