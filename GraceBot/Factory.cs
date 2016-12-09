@@ -3,6 +3,8 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Bot.Connector;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace GraceBot
 {
@@ -40,6 +42,20 @@ namespace GraceBot
         {
             var sep = Path.DirectorySeparatorChar;
             return new ActivityFilter(this, File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + $"{sep}BadWords{sep}en"));
+        }
+
+        public IDefinition GetActivityDefinition()
+        {
+            var sep = Path.DirectorySeparatorChar;
+            using (var reader =
+                new JsonTextReader(
+                new StreamReader(AppDomain.CurrentDomain.BaseDirectory + $"{sep}Words{sep}dictionary.json"))
+
+            )
+            {
+                var definitions = new JsonSerializer().Deserialize<Dictionary<string, string>>(reader);
+                return new ActivityDefinition(definitions);
+            }
         }
     }
 }

@@ -12,12 +12,14 @@ namespace GraceBot
     {
         private readonly IFactory _factory;
         private readonly IFilter _filter;
+        private readonly IDefinition _definition;
         private IExtendedActivity _extendedActivity;
 
         public App(IFactory factory)
         {
             _factory = factory;
             _filter = _factory.GetActivityFilter();
+            _definition = _factory.GetActivityDefinition();
         }
 
         public async Task RunAsync(IExtendedActivity activity)
@@ -53,7 +55,9 @@ namespace GraceBot
                         {
                             if (responseEntity.type == "subject")
                             {
-                                await FindDefinitionForAsync(responseEntity.entity);
+                                var connector = new ConnectorClient(new Uri(_extendedActivity.ServiceUrl));
+                                var reply = (Activity)_extendedActivity.CreateReply(_definition.FindDefinition(responseEntity.entity));
+                                await connector.Conversations.ReplyToActivityAsync(reply);
                             }
                         }
                     }
@@ -83,29 +87,6 @@ namespace GraceBot
                     break;
                 case ActivityTypes.Ping:
                     break;
-            }
-        }
-
-        private async Task FindDefinitionForAsync(string subject)
-        {
-            using (var reader =
-                    new JsonTextReader(
-                        new StreamReader(AppDomain.CurrentDomain.BaseDirectory + "\\Words\\dictionary.json"))
-            )
-            {
-                var definitions = new JsonSerializer().Deserialize<Dictionary<string, string>>(reader);
-                using (var connector = new ConnectorClient(new Uri(_extendedActivity.ServiceUrl)))
-                {
-                    try
-                    {
-                        await connector.Conversations.ReplyToActivityAsync((Activity)_extendedActivity.CreateReply(definitions[subject.ToUpper()]));
-                    }
-                    catch (Exception)
-                    {
-                        await connector.Conversations.ReplyToActivityAsync((Activity)_extendedActivity.CreateReply(
-                            "I don't know about that yet..."));
-                    }
-                }
             }
         }
     }

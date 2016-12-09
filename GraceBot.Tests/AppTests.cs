@@ -35,6 +35,7 @@ namespace GraceBot.Tests
             var mockFactory = new Mock<IFactory>();
             new App(mockFactory.Object);
             mockFactory.Verify(f => f.GetActivityFilter());
+            mockFactory.Verify(f => f.GetActivityDefinition());
         }
     }
 }

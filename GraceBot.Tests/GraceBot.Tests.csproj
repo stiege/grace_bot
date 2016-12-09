@@ -63,6 +63,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ActivityFilterTests.cs" />
+    <Compile Include="ActivityDefinitionTests.cs" />
     <Compile Include="AppTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
