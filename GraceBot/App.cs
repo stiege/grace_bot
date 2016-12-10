@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
@@ -25,7 +23,8 @@ namespace GraceBot
         public async Task RunAsync(IExtendedActivity activity)
         {
             _extendedActivity = activity;
-            if (_extendedActivity.Type == ActivityTypes.Message && await _filter.FilterAsync(_extendedActivity))
+            if (_extendedActivity.Type == ActivityTypes.Message
+                && await _filter.FilterAsync(_extendedActivity))
             {
                 await ProcessActivityAsync();
             }
@@ -48,17 +47,26 @@ namespace GraceBot
                 var msg = await client.GetAsync(uri);
                 if (msg.IsSuccessStatusCode)
                 {
-                    var response = JsonConvert.DeserializeObject<LuisResponse>(await msg.Content.ReadAsStringAsync());
-                    if (response.topScoringIntent.intent == "GetDefinition")
+                    var response = JsonConvert.DeserializeObject<LuisResponse>(
+                        await msg.Content.ReadAsStringAsync());
+                    switch (response.topScoringIntent.intent)
                     {
-                        foreach (Entity responseEntity in response.entities)
+                        case "GetDefinition":
                         {
-                            if (responseEntity.type == "subject")
+                            foreach (var responseEntity in response.entities.Where(e => e.type == "subject"))
                             {
-                                var connector = new ConnectorClient(new Uri(_extendedActivity.ServiceUrl));
-                                var reply = (Activity)_extendedActivity.CreateReply(_definition.FindDefinition(responseEntity.entity));
-                                await connector.Conversations.ReplyToActivityAsync(reply);
+                                var connector = new ConnectorClient(
+                                    new Uri(_extendedActivity.ServiceUrl));
+                                await connector.Conversations.ReplyToActivityAsync(
+                                    (Activity)_extendedActivity.CreateReply(
+                                        _definition.FindDefinition(
+                                            responseEntity.entity)));
                             }
+                            break;
+                        }
+                            default:
+                        {
+                            break;
                         }
                     }
                 }
