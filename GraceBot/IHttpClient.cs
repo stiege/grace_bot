@@ -7,5 +7,6 @@ namespace GraceBot
     internal interface IHttpClient : IDisposable
     {
         Task<HttpResponseMessage> GetAsync(string uri);
+        Task<HttpResponseMessage> PostMessageAsync(string uri, Payload payload);
     }
 }

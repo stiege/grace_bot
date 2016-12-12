@@ -19,9 +19,9 @@ namespace GraceBot
 
         public string FindDefinition(string subject)
         {
-
-            string result = _definitions[subject.ToUpper()];
-            return result ?? "I don't know yet";
+            string result;
+            _definitions.TryGetValue(subject.ToUpper(), out result);
+            return result;
         }
     }
 }

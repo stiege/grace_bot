@@ -55,22 +55,52 @@ namespace GraceBot
                         {
                             foreach (var responseEntity in response.entities.Where(e => e.type == "subject"))
                             {
+                                var result = _definition.FindDefinition(
+                                                responseEntity.entity);
+                                if(result == null)
+                                {
+                                    goto default;
+                                }
+
                                 var connector = new ConnectorClient(
                                     new Uri(_extendedActivity.ServiceUrl));
                                 await connector.Conversations.ReplyToActivityAsync(
-                                    (Activity)_extendedActivity.CreateReply(
-                                        _definition.FindDefinition(
-                                            responseEntity.entity)));
+                                    (Activity)_extendedActivity.CreateReply(result
+                                        ));
                             }
                             break;
                         }
-                            default:
+
+                        default:
                         {
+                            await SlackForwardAsync(_extendedActivity.Text);
                             break;
                         }
                     }
                 }
             }
+        }
+
+        private async Task SlackForwardAsync(string msg)
+        {
+            var client = _factory.GetHttpClient();
+            var uri = "https://hooks.slack.com/services/" + Environment.GetEnvironmentVariable("SLACK_WEBHOOK");
+            
+            var response = await client.PostMessageAsync(uri, new Payload()
+            {
+                Text = msg,
+                Channel = "#5-grace-questions",
+                Username = "GraceBot_UserEnquiry",
+            });
+
+            var reply = "Sorry, we currently don't have an answer for your question";
+            if (response.IsSuccessStatusCode)
+            {
+                reply += "Your question has been sent to OMGTech! team, we will get back to you ASAP.";                
+            }
+
+            var connector = new ConnectorClient(new Uri(_extendedActivity.ServiceUrl));
+            await connector.Conversations.ReplyToActivityAsync((Activity)_extendedActivity.CreateReply(reply));
         }
 
         private void HandleSystemMessage()

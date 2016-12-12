@@ -139,6 +139,7 @@
     <Compile Include="IFilter.cs" />
     <Compile Include="IHttpClient.cs" />
     <Compile Include="LuisResponse.cs" />
+    <Compile Include="Payload.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
