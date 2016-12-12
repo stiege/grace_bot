@@ -1,9 +1,10 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Bot.Connector;
 
 namespace GraceBot
 {
-    internal class ExtendedActivity : IExtendedActivity
+    public class ExtendedActivity : IExtendedActivity
     {
         private readonly Activity _activity;
 
@@ -70,5 +71,21 @@ namespace GraceBot
             get { return _activity.Recipient; }
             set { _activity.Recipient = value; }
         }
+
+        /// <summary>
+        /// This property indicates whether this activity has been processed or not,
+        /// It's Enum Type, and the value, instead of literal string, will be saved to database
+        /// </summary>
+        [EnumDataType(typeof(ProcessStatus))]
+        public ProcessStatus ProcessStatus { get; set; }
     }
+
+
+
+    public enum ProcessStatus
+    {
+        BotReplied = 1,
+        Unprocessed = 2,
+        Processed = 3
+    };
 }

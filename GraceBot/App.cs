@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using GraceBot.Controllers;
+using GraceBot.Models;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 
@@ -26,6 +29,9 @@ namespace GraceBot
             if (_extendedActivity.Type == ActivityTypes.Message
                 && await _filter.FilterAsync(_extendedActivity))
             {
+                // Save activity to database
+                DbController.SaveActivityToDb(_extendedActivity as ExtendedActivity, ProcessStatus.Unprocessed);
+
                 await ProcessActivityAsync();
             }
             else
@@ -55,22 +61,56 @@ namespace GraceBot
                         {
                             foreach (var responseEntity in response.entities.Where(e => e.type == "subject"))
                             {
-                                var connector = new ConnectorClient(
+                                var result = _definition.FindDefinition(
+                                                responseEntity.entity);
+                                if(result == null)
+                                {
+                                    goto default;
+                                }
+                                    
+                                    var connector = new ConnectorClient(
                                     new Uri(_extendedActivity.ServiceUrl));
                                 await connector.Conversations.ReplyToActivityAsync(
-                                    (Activity)_extendedActivity.CreateReply(
-                                        _definition.FindDefinition(
-                                            responseEntity.entity)));
-                            }
+                                    (Activity)_extendedActivity.CreateReply(result
+                                        ));
+
+                                    // Update activity in database , set ProcessStatus of this activity to BotReplied
+                                    DbController.SaveActivityToDb(_extendedActivity as ExtendedActivity, ProcessStatus.BotReplied);
+
+                                }
                             break;
                         }
-                            default:
+
+                        default:
                         {
+                            await SlackForwardAsync(_extendedActivity.Text);
                             break;
                         }
                     }
                 }
             }
+        }
+
+        private async Task SlackForwardAsync(string msg)
+        {
+            var client = _factory.GetHttpClient();
+            var uri = Environment.GetEnvironmentVariable("WEBHOOK_URL");
+            
+            var response = await client.PostMessageAsync(uri, new Payload()
+            {
+                Text = msg,
+                Channel = "#5-grace-questions",
+                Username = "GraceBot_UserEnquiry",
+            });
+
+            var reply = "Sorry, we currently don't have an answer for your question";
+            if (response.IsSuccessStatusCode)
+            {
+                reply += "Your question has been sent to OMGTech! team, we will get back to you ASAP.";                
+            }
+
+            var connector = new ConnectorClient(new Uri(_extendedActivity.ServiceUrl));
+            await connector.Conversations.ReplyToActivityAsync((Activity)_extendedActivity.CreateReply(reply));
         }
 
         private void HandleSystemMessage()
