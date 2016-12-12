@@ -84,7 +84,7 @@ namespace GraceBot
         private async Task SlackForwardAsync(string msg)
         {
             var client = _factory.GetHttpClient();
-            var uri = "https://hooks.slack.com/services/" + Environment.GetEnvironmentVariable("SLACK_WEBHOOK");
+            var uri = Environment.GetEnvironmentVariable("WEBHOOK_URL");
             
             var response = await client.PostMessageAsync(uri, new Payload()
             {
