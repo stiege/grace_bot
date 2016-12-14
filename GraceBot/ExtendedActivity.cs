@@ -3,7 +3,7 @@ using Microsoft.Bot.Connector;
 
 namespace GraceBot
 {
-    internal class ExtendedActivity : IExtendedActivity
+    public class ExtendedActivity : IExtendedActivity
     {
         private readonly Activity _activity;
 

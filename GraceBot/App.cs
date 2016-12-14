@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using GraceBot.Models;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 
@@ -12,6 +13,7 @@ namespace GraceBot
         private readonly IFilter _filter;
         private readonly IDefinition _definition;
         private IExtendedActivity _extendedActivity;
+        private GraceBotContext db = new GraceBotContext();
 
         public App(IFactory factory)
         {
@@ -61,12 +63,15 @@ namespace GraceBot
                                 {
                                     goto default;
                                 }
-
-                                var connector = new ConnectorClient(
+                                    
+                                    var connector = new ConnectorClient(
                                     new Uri(_extendedActivity.ServiceUrl));
                                 await connector.Conversations.ReplyToActivityAsync(
                                     (Activity)_extendedActivity.CreateReply(result
                                         ));
+
+                                db.ExtendedActivities.Add(_extendedActivity as ExtendedActivity);
+                                await db.SaveChangesAsync();
                             }
                             break;
                         }
