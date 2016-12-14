@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using GraceBot.Controllers;
 
 namespace GraceBot
 {
@@ -56,6 +57,16 @@ namespace GraceBot
                 var definitions = new JsonSerializer().Deserialize<Dictionary<string, string>>(reader);
                 return new ActivityDefinition(definitions);
             }
+        }
+
+        private static void SaveToDatabase(IExtendedActivity activity)
+        {
+            DbController.SaveActivityToDb(activity as Activity);
+        }
+
+        public Action<IExtendedActivity> GetActivityPersistor()
+        {
+            return SaveToDatabase;
         }
     }
 }

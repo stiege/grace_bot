@@ -16,12 +16,12 @@ namespace GraceBot.Controllers
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
         /// </summary>
-        public async Task<HttpResponseMessage> Post([FromBody] Activity activity)
+        public async Task<HttpResponseMessage> Post([FromBody] Microsoft.Bot.Connector.Activity activity)
         {
             try
             {
                 var app = Factory.GetFactory().GetApp();
-                await app.RunAsync(new ExtendedActivity(activity));
+                await app.RunAsync((IExtendedActivity)activity);
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
             catch (Exception e)

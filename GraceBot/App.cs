@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
+using GraceBot.Controllers;
+using GraceBot.Models;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 
@@ -12,12 +16,14 @@ namespace GraceBot
         private readonly IFilter _filter;
         private readonly IDefinition _definition;
         private IExtendedActivity _extendedActivity;
+        private readonly Action<IExtendedActivity> _saveActivity;
 
         public App(IFactory factory)
         {
             _factory = factory;
             _filter = _factory.GetActivityFilter();
             _definition = _factory.GetActivityDefinition();
+            _saveActivity = _factory.GetActivityPersistor();
         }
 
         public async Task RunAsync(IExtendedActivity activity)
@@ -26,6 +32,7 @@ namespace GraceBot
             if (_extendedActivity.Type == ActivityTypes.Message
                 && await _filter.FilterAsync(_extendedActivity))
             {
+                _saveActivity(_extendedActivity);
                 await ProcessActivityAsync();
             }
             else
@@ -55,22 +62,54 @@ namespace GraceBot
                         {
                             foreach (var responseEntity in response.entities.Where(e => e.type == "subject"))
                             {
-                                var connector = new ConnectorClient(
+                                var result = _definition.FindDefinition(
+                                                responseEntity.entity);
+                                if(result == null)
+                                {
+                                    goto default;
+                                }
+                                    
+                                    var connector = new ConnectorClient(
                                     new Uri(_extendedActivity.ServiceUrl));
                                 await connector.Conversations.ReplyToActivityAsync(
-                                    (Activity)_extendedActivity.CreateReply(
-                                        _definition.FindDefinition(
-                                            responseEntity.entity)));
-                            }
+                                    (Activity)_extendedActivity.CreateReply(result
+                                        ));
+
+                                    // Update activity in database , set ProcessStatus of this activity to BotReplied
+                                    DbController.SaveActivityToDb(_extendedActivity as Activity);
+
+                                }
                             break;
                         }
-                            default:
+
+                        default:
                         {
+                            await SlackForwardAsync(_extendedActivity.Text);
                             break;
                         }
                     }
                 }
             }
+        }
+
+        private async Task SlackForwardAsync(string msg)
+        {
+            var client = _factory.GetHttpClient();
+            var uri = Environment.GetEnvironmentVariable("WEBHOOK_URL") ?? "";
+            
+            var response = await client.PostMessageAsync(uri, new Payload
+            {
+                Text = msg,
+                Channel = "#5-grace-questions",
+                Username = "GraceBot_UserEnquiry",
+            });
+
+            var reply = "Sorry, we currently don't have an answer for your question";
+            if (response.IsSuccessStatusCode)
+            {
+                reply += "Your question has been sent to OMGTech! team, we will get back to you ASAP.";                
+            }
+            await _factory.RespondAsync(reply, _extendedActivity);
         }
 
         private void HandleSystemMessage()
