@@ -10,5 +10,6 @@ namespace GraceBot
         Task RespondAsync(string s, IExtendedActivity activity);
         IApp GetApp();
         IDefinition GetActivityDefinition();
+        Action<IExtendedActivity> GetActivityPersistor();
     }
 }

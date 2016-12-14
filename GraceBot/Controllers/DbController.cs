@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using GraceBot.Models;
+using Microsoft.Bot.Connector;
 
 namespace GraceBot.Controllers
 {
@@ -10,34 +11,31 @@ namespace GraceBot.Controllers
     {
         private static GraceBotContext db = new GraceBotContext();
 
-        public  static async void SaveActivityToDb(ExtendedActivity extendedActivity, ProcessStatus processStatus)
+        public  static async void SaveActivityToDb(Activity activity)
         {
             // Check if duplicate key in channelAccount and conversationAccount
             if (db.ChannelAccounts.Any())
             {
-                if (db.ChannelAccounts.Select(c => c.Id).Contains(extendedActivity.From.Id))
+                if (db.ChannelAccounts.Select(c => c.Id).Contains(activity.From.Id))
                 {
-                    db.ChannelAccounts.Attach(extendedActivity.From);
+                    db.ChannelAccounts.Attach(activity.From);
                 }
-                if (db.ChannelAccounts.Select(c => c.Id).Contains(extendedActivity.Recipient.Id))
+                if (db.ChannelAccounts.Select(c => c.Id).Contains(activity.Recipient.Id))
                 {
-                    db.ChannelAccounts.Attach(extendedActivity.Recipient);
+                    db.ChannelAccounts.Attach(activity.Recipient);
                 }
             }
 
             if (db.ConversationAccounts.Any())
             {
-                if (db.ConversationAccounts.Select(c => c.Id).Contains(extendedActivity.Conversation.Id))
+                if (db.ConversationAccounts.Select(c => c.Id).Contains(activity.Conversation.Id))
                 {
-                    db.ConversationAccounts.Attach(extendedActivity.Conversation);
+                    db.ConversationAccounts.Attach(activity.Conversation);
                 }
             }
 
-            // Set processStatus
-            extendedActivity.ProcessStatus = processStatus;
-
-            // Save extendedActivity to database
-            db.ExtendedActivities.Add(extendedActivity);
+            // Save activity to database
+            db.ExtendedActivities.Add(activity);
             await db.SaveChangesAsync();
         }
     }

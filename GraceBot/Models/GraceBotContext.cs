@@ -20,7 +20,7 @@ namespace GraceBot.Models
         {
         }
 
-        public System.Data.Entity.DbSet<GraceBot.ExtendedActivity> ExtendedActivities { get; set; }
+        public System.Data.Entity.DbSet<Activity> ExtendedActivities { get; set; }
         public System.Data.Entity.DbSet<ChannelAccount> ChannelAccounts { get; set; }
         public System.Data.Entity.DbSet<ConversationAccount> ConversationAccounts { get; set; }
 

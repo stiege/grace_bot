@@ -1,7 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Microsoft.Bot.Connector;
 using NUnit.Framework;
 using Moq;
+using Newtonsoft.Json;
 
 namespace GraceBot.Tests
 {
@@ -36,6 +41,38 @@ namespace GraceBot.Tests
             new App(mockFactory.Object);
             mockFactory.Verify(f => f.GetActivityFilter());
             mockFactory.Verify(f => f.GetActivityDefinition());
+        }
+
+        [Test]
+        public async Task ActivityIsPersisted()
+        {
+            var mockActivity = new Mock<IExtendedActivity>();
+            var mockFactory = new Mock<IFactory>();
+            var mockHttpClient = new Mock<IHttpClient>();
+            IExtendedActivity persistedActivity = null;
+
+            var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+            var luisResponse = new LuisResponse
+            {
+                topScoringIntent = new Intent { intent = ""}
+            };
+            httpResponseMessage.Content = new StringContent(
+                JsonConvert.SerializeObject(luisResponse));
+            mockHttpClient.Setup(c => c.GetAsync(It.IsAny<string>())).Returns(Task.FromResult(httpResponseMessage));
+            mockHttpClient.Setup(c => c.PostMessageAsync(It.IsAny<string>(), It.IsAny<Payload>())).Returns(Task.FromResult(httpResponseMessage));
+            mockActivity.Setup(a => a.Text).Returns("");
+            mockActivity.Setup(a => a.Type).Returns(ActivityTypes.Message);
+            mockFactory.Setup(f => f.GetActivityFilter()).Returns(
+                new ActivityFilter(mockFactory.Object, new string[] {}));
+            mockFactory.Setup(f => f.GetActivityDefinition()).Returns(
+                new ActivityDefinition(new Dictionary<string, string>()));
+            mockFactory.Setup(f => f.GetHttpClient()).Returns(mockHttpClient.Object);
+            mockFactory.Setup(f => f.GetActivityPersistor()).Returns(activity => { persistedActivity = activity; });
+
+            var app = new App(mockFactory.Object);
+            await app.RunAsync(mockActivity.Object);
+
+            Assert.That(persistedActivity, Is.SameAs(mockActivity.Object));
         }
     }
 }
