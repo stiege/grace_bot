@@ -162,6 +162,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\GraceBotContext-20161213161857.mdf" />
+    <Content Include="App_Data\GraceBotContext-20161213161857_log.ldf">
+      <DependentUpon>GraceBotContext-20161213161857.mdf</DependentUpon>
+    </Content>
     <Content Include="default.htm" />
     <Content Include="Global.asax" />
     <Content Include="Web.config">
@@ -173,6 +177,7 @@
     <Compile Include="ActivityFilter.cs" />
     <Compile Include="App.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\DbController.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="ExtendedActivity.cs" />
     <Compile Include="Factory.cs" />
@@ -190,6 +195,10 @@
     <Compile Include="Migrations\201612130323540_AddExtendedActivitiesTable.cs" />
     <Compile Include="Migrations\201612130323540_AddExtendedActivitiesTable.Designer.cs">
       <DependentUpon>201612130323540_AddExtendedActivitiesTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201612140326354_AddProcessStatusPropertyToExtendedActivity.cs" />
+    <Compile Include="Migrations\201612140326354_AddProcessStatusPropertyToExtendedActivity.Designer.cs">
+      <DependentUpon>201612140326354_AddProcessStatusPropertyToExtendedActivity.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\GraceBotContext.cs" />
@@ -211,10 +220,15 @@
     </None>
     <Content Include="Words\dictionary.json" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Views\DB\" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201612130323540_AddExtendedActivitiesTable.resx">
       <DependentUpon>201612130323540_AddExtendedActivitiesTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201612140326354_AddProcessStatusPropertyToExtendedActivity.resx">
+      <DependentUpon>201612140326354_AddProcessStatusPropertyToExtendedActivity.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

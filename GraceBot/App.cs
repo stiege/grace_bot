@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using GraceBot.Controllers;
 using GraceBot.Models;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
@@ -13,7 +15,6 @@ namespace GraceBot
         private readonly IFilter _filter;
         private readonly IDefinition _definition;
         private IExtendedActivity _extendedActivity;
-        private GraceBotContext db = new GraceBotContext();
 
         public App(IFactory factory)
         {
@@ -28,6 +29,9 @@ namespace GraceBot
             if (_extendedActivity.Type == ActivityTypes.Message
                 && await _filter.FilterAsync(_extendedActivity))
             {
+                // Save activity to database
+                DbController.SaveActivityToDb(_extendedActivity as ExtendedActivity, ProcessStatus.Unprocessed);
+
                 await ProcessActivityAsync();
             }
             else
@@ -70,9 +74,10 @@ namespace GraceBot
                                     (Activity)_extendedActivity.CreateReply(result
                                         ));
 
-                                db.ExtendedActivities.Add(_extendedActivity as ExtendedActivity);
-                                await db.SaveChangesAsync();
-                            }
+                                    // Update activity in database , set ProcessStatus of this activity to BotReplied
+                                    DbController.SaveActivityToDb(_extendedActivity as ExtendedActivity, ProcessStatus.BotReplied);
+
+                                }
                             break;
                         }
 

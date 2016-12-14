@@ -25,4 +25,5 @@ namespace GraceBot.Models
         public System.Data.Entity.DbSet<ConversationAccount> ConversationAccounts { get; set; }
 
     }
+
 }
