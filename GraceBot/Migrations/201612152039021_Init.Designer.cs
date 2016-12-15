@@ -13,7 +13,7 @@ namespace GraceBot.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201612142308104_Init"; }
+            get { return "201612152039021_Init"; }
         }
         
         string IMigrationMetadata.Source

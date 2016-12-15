@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
 using System.Data.Entity.Migrations;
+using System.IO;
 using System.Linq;
-using System.Web;
-using GraceBot.Models;
 using System.Threading.Tasks;
-using System.Collections;
-using Microsoft.Bot.Connector;
+using System.Net;
+using System.Web;
+using System.Web.Mvc;
+using System.Globalization;
+using GraceBot.Models;
 
 namespace GraceBot.Controllers
 {
@@ -50,12 +54,12 @@ namespace GraceBot.Controllers
 
         public static List<ExtendedActivity> FindUnprocessedQuestions()
         {
-            return db.ExtendedActivities.Where(o => o.ProcessStatus == ProcessStatus.Unprocessed).Take(5).ToList();
+            return db.ExtendedActivities.Include(r=>r.From).Include(r=>r.Recipient).Include(r=>r.Conversation).Where(o => o.ProcessStatus == ProcessStatus.Unprocessed).Take(5).ToList();
         }
 
         public static ExtendedActivity FindExtendedActivity(string id)
         {
-            return db.ExtendedActivities.Where(o => o.Id == id).FirstOrDefault();
+            return db.ExtendedActivities.FirstOrDefault(o => o.Id == id);
         }
     }
 }

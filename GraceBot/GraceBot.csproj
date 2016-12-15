@@ -193,9 +193,9 @@
     <Compile Include="IFilter.cs" />
     <Compile Include="IHttpClient.cs" />
     <Compile Include="LuisResponse.cs" />
-    <Compile Include="Migrations\201612142308104_Init.cs" />
-    <Compile Include="Migrations\201612142308104_Init.Designer.cs">
-      <DependentUpon>201612142308104_Init.cs</DependentUpon>
+    <Compile Include="Migrations\201612152039021_Init.cs" />
+    <Compile Include="Migrations\201612152039021_Init.Designer.cs">
+      <DependentUpon>201612152039021_Init.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\GraceBotContext.cs" />
@@ -221,8 +221,8 @@
     <Folder Include="Views\DB\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201612142308104_Init.resx">
-      <DependentUpon>201612142308104_Init.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201612152039021_Init.resx">
+      <DependentUpon>201612152039021_Init.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -7,10 +7,10 @@ namespace GraceBot
 {
     public class ExtendedActivity : IExtendedActivity
     {
-        private readonly Activity _activity;
+        private  Activity _activity;
 
         private ExtendedActivity()
-        { }
+        { _activity=new Activity();}
 
         public ExtendedActivity(Activity activity)
         {
