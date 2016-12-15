@@ -95,6 +95,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data.Entity" />
     <Reference Include="System.IdentityModel.Tokens.Jwt, Version=4.0.20622.1351, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.4.0.2.206221351\lib\net45\System.IdentityModel.Tokens.Jwt.dll</HintPath>
       <Private>True</Private>
@@ -192,13 +193,9 @@
     <Compile Include="IFilter.cs" />
     <Compile Include="IHttpClient.cs" />
     <Compile Include="LuisResponse.cs" />
-    <Compile Include="Migrations\201612130323540_AddExtendedActivitiesTable.cs" />
-    <Compile Include="Migrations\201612130323540_AddExtendedActivitiesTable.Designer.cs">
-      <DependentUpon>201612130323540_AddExtendedActivitiesTable.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201612140326354_AddProcessStatusPropertyToExtendedActivity.cs" />
-    <Compile Include="Migrations\201612140326354_AddProcessStatusPropertyToExtendedActivity.Designer.cs">
-      <DependentUpon>201612140326354_AddProcessStatusPropertyToExtendedActivity.cs</DependentUpon>
+    <Compile Include="Migrations\201612142308104_Init.cs" />
+    <Compile Include="Migrations\201612142308104_Init.Designer.cs">
+      <DependentUpon>201612142308104_Init.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\GraceBotContext.cs" />
@@ -224,11 +221,8 @@
     <Folder Include="Views\DB\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201612130323540_AddExtendedActivitiesTable.resx">
-      <DependentUpon>201612130323540_AddExtendedActivitiesTable.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201612140326354_AddProcessStatusPropertyToExtendedActivity.resx">
-      <DependentUpon>201612140326354_AddProcessStatusPropertyToExtendedActivity.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201612142308104_Init.resx">
+      <DependentUpon>201612142308104_Init.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

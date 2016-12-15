@@ -18,6 +18,12 @@ namespace GraceBot.Controllers
         /// </summary>
         public async Task<HttpResponseMessage> Post([FromBody] Activity activity)
         {
+            if(activity.Text == "/delState")
+            {
+                var stateClient = activity.GetStateClient();
+                await stateClient.BotState.DeleteStateForUserAsync(activity.ChannelId, activity.From.Id);
+            }
+
             try
             {
                 var app = Factory.GetFactory().GetApp();

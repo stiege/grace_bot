@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Web;
 using GraceBot.Models;
+using System.Threading.Tasks;
+using System.Collections;
+using Microsoft.Bot.Connector;
 
 namespace GraceBot.Controllers
 {
@@ -10,35 +14,48 @@ namespace GraceBot.Controllers
     {
         private static GraceBotContext db = new GraceBotContext();
 
-        public  static async void SaveActivityToDb(ExtendedActivity extendedActivity, ProcessStatus processStatus)
+        public static async Task AddOrUpdateActivityInDb(ExtendedActivity extendedActivity, ProcessStatus processStatus)
         {
             // Check if duplicate key in channelAccount and conversationAccount
-            if (db.ChannelAccounts.Any())
+
+            var channelAccountFrom = await db.ChannelAccounts.FindAsync(extendedActivity.From.Id);
+            var channelRecipient = await db.ChannelAccounts.FindAsync(extendedActivity.Recipient.Id);
+            var conversationAccount = await db.ConversationAccounts.FindAsync(extendedActivity.Conversation.Id);
+
+            if (channelAccountFrom != null)
             {
-                if (db.ChannelAccounts.Select(c => c.Id).Contains(extendedActivity.From.Id))
-                {
-                    db.ChannelAccounts.Attach(extendedActivity.From);
-                }
-                if (db.ChannelAccounts.Select(c => c.Id).Contains(extendedActivity.Recipient.Id))
-                {
-                    db.ChannelAccounts.Attach(extendedActivity.Recipient);
-                }
+                db.ChannelAccounts.Attach(channelAccountFrom);
+                extendedActivity.From = channelAccountFrom;
+            }
+            if (channelRecipient != null)
+            {
+                db.ChannelAccounts.Attach(channelRecipient);
+                extendedActivity.Recipient = channelRecipient;
             }
 
-            if (db.ConversationAccounts.Any())
+            if (conversationAccount != null)
             {
-                if (db.ConversationAccounts.Select(c => c.Id).Contains(extendedActivity.Conversation.Id))
-                {
-                    db.ConversationAccounts.Attach(extendedActivity.Conversation);
-                }
+                db.ConversationAccounts.Attach(conversationAccount);
+                extendedActivity.Conversation = conversationAccount;
             }
+
 
             // Set processStatus
             extendedActivity.ProcessStatus = processStatus;
 
             // Save extendedActivity to database
-            db.ExtendedActivities.Add(extendedActivity);
+            db.ExtendedActivities.AddOrUpdate(extendedActivity);
             await db.SaveChangesAsync();
+        }
+
+        public static List<ExtendedActivity> FindUnprocessedQuestions()
+        {
+            return db.ExtendedActivities.Where(o => o.ProcessStatus == ProcessStatus.Unprocessed).Take(5).ToList();
+        }
+
+        public static ExtendedActivity FindExtendedActivity(string id)
+        {
+            return db.ExtendedActivities.Where(o => o.Id == id).FirstOrDefault();
         }
     }
 }

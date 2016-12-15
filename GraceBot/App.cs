@@ -6,6 +6,8 @@ using GraceBot.Controllers;
 using GraceBot.Models;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace GraceBot
 {
@@ -26,13 +28,40 @@ namespace GraceBot
         public async Task RunAsync(IExtendedActivity activity)
         {
             _extendedActivity = activity;
-            if (_extendedActivity.Type == ActivityTypes.Message
+
+            var stateClient = _extendedActivity.GetStateClient();
+            var userData = await stateClient.BotState.GetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id);
+            var replying = userData.GetProperty<bool>("replying");
+
+            if (replying != null&& replying)
+            {
+                await ProcessReplyAsync();
+            }
+
+            else if(_extendedActivity.Type == ActivityTypes.Message
                 && await _filter.FilterAsync(_extendedActivity))
             {
                 // Save activity to database
-                DbController.SaveActivityToDb(_extendedActivity as ExtendedActivity, ProcessStatus.Unprocessed);
+                switch(_extendedActivity.Text.Split(' ')[0])
+                {
+                    case "/get":
+                        {
+                            await RetrieveQuestionsAsync();
+                            break;
+                        }
+                    case "/reply":
+                        {
+                            await ReplyToQuestionsAsync();
+                            break;
+                        }
+                    default:
+                        {
+                            await DbController.AddOrUpdateActivityInDb(_extendedActivity as ExtendedActivity, ProcessStatus.Unprocessed);
+                            await ProcessActivityAsync();
+                            break;
+                        }
+                }
 
-                await ProcessActivityAsync();
             }
             else
             {
@@ -67,17 +96,18 @@ namespace GraceBot
                                 {
                                     goto default;
                                 }
-                                    
-                                    var connector = new ConnectorClient(
-                                    new Uri(_extendedActivity.ServiceUrl));
-                                await connector.Conversations.ReplyToActivityAsync(
-                                    (Activity)_extendedActivity.CreateReply(result
-                                        ));
 
-                                    // Update activity in database , set ProcessStatus of this activity to BotReplied
-                                    DbController.SaveActivityToDb(_extendedActivity as ExtendedActivity, ProcessStatus.BotReplied);
+                                var reply = _extendedActivity.CreateReply(result);
+                                await DbController.AddOrUpdateActivityInDb(new ExtendedActivity(reply as Activity), ProcessStatus.BotMessage);
 
-                                }
+                                var connector = new ConnectorClient(
+                                new Uri(_extendedActivity.ServiceUrl));
+                                await connector.Conversations.ReplyToActivityAsync(reply as Activity
+                                );                                    
+
+                                // Update activity in database , set ProcessStatus of this activity to BotReplied
+                                await DbController.AddOrUpdateActivityInDb(_extendedActivity as ExtendedActivity, ProcessStatus.BotReplied);
+                            }
                             break;
                         }
 
@@ -89,6 +119,75 @@ namespace GraceBot
                     }
                 }
             }
+        }
+
+        private async Task RetrieveQuestionsAsync()
+        {
+            var reply = (Activity)_extendedActivity.CreateReply("Unprocessed Questions:");
+            reply.Recipient = _extendedActivity.From;
+            reply.Type = "message";
+            reply.Attachments = new List<Attachment>();
+
+            var eas = DbController.FindUnprocessedQuestions();
+            foreach (var ea in eas)
+            {
+                var cardButtons = new List<CardAction>();
+                cardButtons.Add(new CardAction()
+                {
+                    Title = "Answer this question",
+                    Type = "postBack",
+                    Value = $"/reply {ea.Id}"
+                });
+
+                var card = new HeroCard()
+                {
+                    Subtitle = $"{ea.From.Name} asked at {ea.Timestamp}",
+                    Text = $"{ea.Text}",
+                    Buttons = cardButtons
+                };
+                reply.Attachments.Add(card.ToAttachment());
+            }
+
+            var connector = new ConnectorClient(new Uri(_extendedActivity.ServiceUrl));
+            await connector.Conversations.ReplyToActivityAsync(reply);
+        }
+
+        private async Task ReplyToQuestionsAsync()
+        {
+
+            var replyToActivity = DbController.FindExtendedActivity(_extendedActivity.Text.Split(' ')[1]);
+            if (replyToActivity == null)
+            {
+                //do something to handle
+            }
+            var stateClient = _extendedActivity.GetStateClient();
+            var userData = await stateClient.BotState.GetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id);
+            userData.SetProperty("replying", true);
+            userData.SetProperty("replyingToActivity", replyToActivity.Id);
+            await stateClient.BotState.SetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id, userData);
+
+            var markdown = $"You are answering ***{replyToActivity.From.Name}***'s question:\n";
+            markdown += "***\n";
+            markdown += $"{replyToActivity.Text}\n";
+            markdown += "***\n";
+            markdown += "**Please give your answer in the next reply.**\n";
+
+            var connector = new ConnectorClient(new Uri(_extendedActivity.ServiceUrl));
+            await connector.Conversations.ReplyToActivityAsync((Activity)_extendedActivity.CreateReply(markdown));
+        }
+
+        private async Task ProcessReplyAsync()
+        {
+            // set the extendedActivity to save to a replied activity
+            await DbController.AddOrUpdateActivityInDb(_extendedActivity as ExtendedActivity, ProcessStatus.BotReplied);
+
+            var stateClient = _extendedActivity.GetStateClient();
+            var userData = await stateClient.BotState.GetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id);
+            userData.SetProperty("replying", false);
+            await stateClient.BotState.SetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id, userData);
+
+            var connector = new ConnectorClient(new Uri(_extendedActivity.ServiceUrl));
+            await connector.Conversations.ReplyToActivityAsync((Activity)_extendedActivity.CreateReply("Thanks, your answer has been received."));
         }
 
         private async Task SlackForwardAsync(string msg)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Bot.Connector;
+using System.Net.Http;
 
 namespace GraceBot
 {
@@ -11,5 +12,6 @@ namespace GraceBot
     {
         IActivity CreateReply(string p0);
         string Text { get; }
+        StateClient GetStateClient(string microsoftAppId = null, string microsoftAppPassword = null, string serviceUrl = null, params DelegatingHandler[] handlers);
     }
 }
