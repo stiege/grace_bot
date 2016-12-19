@@ -33,7 +33,7 @@ namespace GraceBot
             var userData = await stateClient.BotState.GetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id);
             var replying = userData.GetProperty<bool>("replying");
 
-            if (replying != null&& replying)
+            if (replying != null && replying)
             {
                 await ProcessReplyAsync();
             }
@@ -163,7 +163,8 @@ namespace GraceBot
             var stateClient = _extendedActivity.GetStateClient();
             var userData = await stateClient.BotState.GetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id);
             userData.SetProperty("replying", true);
-            userData.SetProperty("replyingToActivity", replyToActivity.Id);
+            userData.SetProperty("userQuestionID", replyToActivity.Id);
+            userData.SetProperty("replyingToActivityID", replyToActivity.ActivityId);
             await stateClient.BotState.SetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id, userData);
 
             var markdown = $"You are answering ***{replyToActivity.From.Name}***'s question:\n";
@@ -172,22 +173,32 @@ namespace GraceBot
             markdown += "***\n";
             markdown += "**Please give your answer in the next reply.**\n";
 
-            var connector = new ConnectorClient(new Uri(_extendedActivity.ServiceUrl));
-            await connector.Conversations.ReplyToActivityAsync((Activity)_extendedActivity.CreateReply(markdown));
+            await _factory.RespondAsync(markdown, _extendedActivity);
         }
 
         private async Task ProcessReplyAsync()
         {
-            // set the extendedActivity to save to a replied activity
-            await DbController.AddOrUpdateActivityInDb(_extendedActivity as ExtendedActivity, ProcessStatus.BotReplied);
-
             var stateClient = _extendedActivity.GetStateClient();
             var userData = await stateClient.BotState.GetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id);
+
+            // get the userQuestion activity in order to update the process status
+            var userQuestionActivity = DbController.FindExtendedActivity(userData.GetProperty<string>("userQuestionID"));
+
+            // set the ReplyToID of the answer acitivity to the AcitivityID of userQuestionAcitivity
+            var rangerAnswerActivity = (ExtendedActivity)_extendedActivity;
+            rangerAnswerActivity.ReplyToId = userData.GetProperty<string>("replyingToActivityID");
+
+            // save the rangerAnswerAcitivty to database.
+            await DbController.AddOrUpdateActivityInDb(rangerAnswerActivity, ProcessStatus.BotReplied);
+
+            // update the process status of userQuestionAcitivity
+            await DbController.AddOrUpdateActivityInDb(userQuestionActivity as ExtendedActivity, ProcessStatus.Processed);
+            
+            // reset replying state of the user
             userData.SetProperty("replying", false);
             await stateClient.BotState.SetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id, userData);
 
-            var connector = new ConnectorClient(new Uri(_extendedActivity.ServiceUrl));
-            await connector.Conversations.ReplyToActivityAsync((Activity)_extendedActivity.CreateReply("Thanks, your answer has been received."));
+            await _factory.RespondAsync("Thanks, your answer has been received.", _extendedActivity);
         }
 
         private async Task SlackForwardAsync(string msg)
@@ -212,14 +223,17 @@ namespace GraceBot
             await connector.Conversations.ReplyToActivityAsync((Activity)_extendedActivity.CreateReply(reply));
         }
 
-        private void HandleSystemMessage()
+        private async Task HandleSystemMessage()
         {
             switch (_extendedActivity.Type)
             {
                 case ActivityTypes.DeleteUserData:
-                    // Implement user deletion here
-                    // If we handle user deletion, return a real message
-                    break;
+                    {
+                        var stateClient = _extendedActivity.GetStateClient();
+                        await stateClient.BotState.DeleteStateForUserAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id);
+                        await _factory.RespondAsync($"The data of User {_extendedActivity.From.Id} has been deleted.", _extendedActivity);
+                        break;
+                    }
                 case ActivityTypes.ConversationUpdate:
                     // Handle conversation state changes, like members being added and removed
                     // Use Activity.MembersAdded and Activity.MembersRemoved and Activity.Action for info
