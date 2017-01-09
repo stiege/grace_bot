@@ -21,34 +21,29 @@ namespace GraceBot
 
         public async Task AddActivity(Activity activity, ProcessStatus processStatus = ProcessStatus.BotMessage)
         {
-            await AddOrUpdateActivity(activity, processStatus);
+            await AddOrUpdateActivity(ConvertToModel(activity, processStatus));
         }
 
         public async Task UpdateActivity(Activity activity)
         {
-            await AddOrUpdateActivity(activity);
+            await AddOrUpdateActivity(ConvertToModel(activity, null));
         }
 
         public async Task UpdateActivity(Activity activity, ProcessStatus processStatus)
         {
-            await AddOrUpdateActivity(activity, processStatus);
+            await AddOrUpdateActivity(ConvertToModel(activity, processStatus));
         }
 
-        private async Task AddOrUpdateActivity(Activity activity, ProcessStatus? processStatus = null)
+        private async Task AddOrUpdateActivity(ActivityModel activityModel)
         {
-            var activityModel = ConvertToModel(activity);
-
-            // Check if this activity  exists in database ,if so , get the id
+            // Check if this activity exists in database based on the ActivityId,
             var activityDb = _db.Activities.FirstOrDefault(o => o.ActivityId.Equals(activityModel.ActivityId));
             if (activityDb != null)
             {
                 activityModel.Id = activityDb.Id;
-            }
 
-            // Set the process status
-            if (processStatus != null)
-            {
-                activityModel.ProcessStatus = (ProcessStatus)processStatus;
+                if (activityModel.ProcessStatus == null)
+                    activityModel.ProcessStatus = activityDb.ProcessStatus;
             }
 
             // Check if duplicate key in channelAccount and conversationAccount
@@ -108,28 +103,29 @@ namespace GraceBot
             return ConvertToActivity(ea);
         }
 
-        private ActivityModel ConvertToModel(Activity activity)
+        private ActivityModel ConvertToModel(Activity activity, ProcessStatus? processStatus)
         {
-            return new ActivityModel(activity);
+            var model = new ActivityModel(activity);
+            if (processStatus != null)
+                model.ProcessStatus = (ProcessStatus)processStatus;
+            return model;
         }
 
-        private Activity ConvertToActivity(ActivityModel extendedActivity)
+        private Activity ConvertToActivity(ActivityModel activityModel)
         {
             return new Activity()
             {
-                Id = extendedActivity.ActivityId,
-                Text = extendedActivity.Text,
-                Type = extendedActivity.Type,
-                ServiceUrl = extendedActivity.ServiceUrl,
-                Timestamp = extendedActivity.Timestamp,
-                ChannelId = extendedActivity.ChannelId,
-                From = extendedActivity.From,
-                Conversation = extendedActivity.Conversation,
-                Recipient = extendedActivity.Recipient,
-                ReplyToId = extendedActivity.ReplyToId
+                Id = activityModel.ActivityId,
+                Text = activityModel.Text,
+                Type = activityModel.Type,
+                ServiceUrl = activityModel.ServiceUrl,
+                Timestamp = activityModel.Timestamp,
+                ChannelId = activityModel.ChannelId,
+                From = activityModel.From,
+                Conversation = activityModel.Conversation,
+                Recipient = activityModel.Recipient,
+                ReplyToId = activityModel.ReplyToId
             };
         }
-
-
     }
 }
