@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Web;
+﻿using System.Data.Entity;
 using Microsoft.Bot.Connector;
 
 namespace GraceBot.Models
@@ -20,7 +16,7 @@ namespace GraceBot.Models
         {
         }
 
-        public System.Data.Entity.DbSet<GraceBot.ExtendedActivity> ExtendedActivities { get; set; }
+        public System.Data.Entity.DbSet<ActivityModel> Activities { get; set; }
         public System.Data.Entity.DbSet<ChannelAccount> ChannelAccounts { get; set; }
         public System.Data.Entity.DbSet<ConversationAccount> ConversationAccounts { get; set; }
 

@@ -26,10 +26,12 @@ namespace GraceBot
             return new GraceHttpClient(new HttpClient());
         }
 
-        public async Task RespondAsync(string response, IExtendedActivity activity)
+        public async Task<Activity> RespondAsync(string replyText, Activity originalAcitivty)
         {
-            var connector = new ConnectorClient(new Uri(activity.ServiceUrl));
-            await connector.Conversations.ReplyToActivityAsync((Activity) activity.CreateReply(response));
+            var connector = new ConnectorClient(new Uri(originalAcitivty.ServiceUrl));
+            var replyAcitivty = originalAcitivty.CreateReply(replyText);
+            await connector.Conversations.ReplyToActivityAsync(replyAcitivty);
+            return replyAcitivty;
         }
 
         public IApp GetApp()
@@ -41,7 +43,7 @@ namespace GraceBot
         public IFilter GetActivityFilter()
         {
             var sep = Path.DirectorySeparatorChar;
-            return new ActivityFilter(this, File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + $"{sep}BadWords{sep}en"));
+            return new ActivityFilter(File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + $"{sep}BadWords{sep}en"));
         }
 
         public IDefinition GetActivityDefinition()
@@ -56,6 +58,32 @@ namespace GraceBot
                 var definitions = new JsonSerializer().Deserialize<Dictionary<string, string>>(reader);
                 return new ActivityDefinition(definitions);
             }
+        }
+
+        public IDbManager GetDbManager()
+        {
+            return new DbManager(new Models.GraceBotContext());
+        }
+
+        public async Task<T> GetUserDataPropertyAsync<T>(string property, Activity activity)
+        {
+            var stateClient = activity.GetStateClient();
+            var userData = await stateClient.BotState.GetUserDataAsync(activity.ChannelId, activity.From.Id);
+            return userData.GetProperty<T>(property);
+        }
+
+        public async Task SetUserDataPropertyAsync<T>(string property, T data, Activity activity)
+        {
+            var stateClient = activity.GetStateClient();
+            var userData = await stateClient.BotState.GetUserDataAsync(activity.ChannelId, activity.From.Id);
+            userData.SetProperty<T>(property, data);
+            await stateClient.BotState.SetUserDataAsync(activity.ChannelId, activity.From.Id, userData);
+        }
+
+        public async Task<string[]> DeleteStateForUserAsync(Activity activity)
+        {
+            var stateClient = activity.GetStateClient();
+            return await stateClient.BotState.DeleteStateForUserAsync(activity.ChannelId, activity.From.Id);
         }
     }
 }

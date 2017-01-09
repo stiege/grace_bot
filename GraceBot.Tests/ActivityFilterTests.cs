@@ -10,7 +10,7 @@ namespace GraceBot.Tests
         public void InitTest()
         {
             var mockFactory = new Mock<IFactory>();
-            new ActivityFilter(mockFactory.Object, new [] {"bad", "word", "list"});
+            new ActivityFilter(new [] {"bad", "word", "list"});
         }
     }
 }

@@ -178,28 +178,36 @@
     <Compile Include="ActivityFilter.cs" />
     <Compile Include="App.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="Controllers\DbController.cs" />
+    <Compile Include="DbManager.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
-    <Compile Include="ExtendedActivity.cs" />
+    <Compile Include="Migrations\201701090121503_ModifyModels.cs" />
+    <Compile Include="Migrations\201701090121503_ModifyModels.Designer.cs">
+      <DependentUpon>201701090121503_ModifyModels.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201701090328037_ModifyActivityModel.cs" />
+    <Compile Include="Migrations\201701090328037_ModifyActivityModel.Designer.cs">
+      <DependentUpon>201701090328037_ModifyActivityModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ActivityModel.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="GraceHttpClient.cs" />
     <Compile Include="IApp.cs" />
+    <Compile Include="IDbManager.cs" />
     <Compile Include="IDefinition.cs" />
-    <Compile Include="IExtendedActivity.cs" />
     <Compile Include="IFactory.cs" />
     <Compile Include="IFilter.cs" />
     <Compile Include="IHttpClient.cs" />
-    <Compile Include="LuisResponse.cs" />
+    <Compile Include="Models\LuisResponse.cs" />
     <Compile Include="Migrations\201612152039021_Init.cs" />
     <Compile Include="Migrations\201612152039021_Init.Designer.cs">
       <DependentUpon>201612152039021_Init.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\GraceBotContext.cs" />
-    <Compile Include="Payload.cs" />
+    <Compile Include="Models\Payload.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -217,12 +225,16 @@
     </None>
     <Content Include="Words\dictionary.json" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Views\DB\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201612152039021_Init.resx">
       <DependentUpon>201612152039021_Init.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201701090121503_ModifyModels.resx">
+      <DependentUpon>201701090121503_ModifyModels.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201701090328037_ModifyActivityModel.resx">
+      <DependentUpon>201701090328037_ModifyActivityModel.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

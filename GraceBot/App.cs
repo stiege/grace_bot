@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using GraceBot.Controllers;
 using GraceBot.Models;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace GraceBot
 {
@@ -16,67 +13,76 @@ namespace GraceBot
         private readonly IFactory _factory;
         private readonly IFilter _filter;
         private readonly IDefinition _definition;
-        private IExtendedActivity _extendedActivity;
+        private readonly IDbManager _dbManager;
+
+        private Activity _activity;
 
         public App(IFactory factory)
         {
             _factory = factory;
             _filter = _factory.GetActivityFilter();
             _definition = _factory.GetActivityDefinition();
+            _dbManager = _factory.GetDbManager();
         }
 
-        public async Task RunAsync(IExtendedActivity activity)
+        public async Task RunAsync(Activity activity)
         {
-            _extendedActivity = activity;
-
-            var stateClient = _extendedActivity.GetStateClient();
-            var userData = await stateClient.BotState.GetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id);
-            var replying = userData.GetProperty<bool>("replying");
-
-            if (replying != null && replying)
+            // check Activity Type
+            _activity = activity;
+            if(_activity.Type != ActivityTypes.Message)
             {
-                await ProcessReplyAsync();
+                await HandleSystemMessage();
+                return;
             }
 
-            else if(_extendedActivity.Type == ActivityTypes.Message
-                && await _filter.FilterAsync(_extendedActivity))
+            // check state
+            var replying = await _factory.GetUserDataPropertyAsync<bool>("replying", _activity);
+            if (replying)
+            {
+                await ProcessReplyAsync();
+                return;
+            }
+
+            if(await _filter.FilterAsync(_activity))
             {
                 // Save activity to database
-                switch(_extendedActivity.Text.Split(' ')[0])
+                switch(_activity.Text.Split(' ')[0])
                 {
                     case "/get":
                         {
                             await RetrieveQuestionsAsync();
                             break;
                         }
-                    case "/reply":
+                    case "/replyActivity":
                         {
                             await ReplyToQuestionsAsync();
                             break;
                         }
                     default:
                         {
-                            await DbController.AddOrUpdateActivityInDb(_extendedActivity as ExtendedActivity, ProcessStatus.Unprocessed);
                             await ProcessActivityAsync();
                             break;
                         }
                 }
 
-            }
-            else
+            } else
             {
-                HandleSystemMessage();
+                await _factory.RespondAsync("Sorry, bad words detected, please try again.", _activity);
             }
         }
 
         private async Task ProcessActivityAsync()
         {
-            var strEscaped = Uri.EscapeUriString(_extendedActivity.Text);
+            // save the activity to db
+            await _factory.GetDbManager().AddActivity(_activity, ProcessStatus.Unprocessed);
+
+            var strEscaped = Uri.EscapeUriString(_activity.Text);
             var uri =
                 "https://api.projectoxford.ai/luis/v2.0/apps/" + Environment.GetEnvironmentVariable("LUIS_ID") +
                 "?subscription-key=" +
                 Environment.GetEnvironmentVariable("LUIS_KEY") + "&q=" +
                 strEscaped + "&verbose=true";
+
             using (var client = _factory.GetHttpClient())
             {
                 var msg = await client.GetAsync(uri);
@@ -84,38 +90,28 @@ namespace GraceBot
                 {
                     var response = JsonConvert.DeserializeObject<LuisResponse>(
                         await msg.Content.ReadAsStringAsync());
+
                     switch (response.topScoringIntent.intent)
                     {
                         case "GetDefinition":
-                        {
-                            foreach (var responseEntity in response.entities.Where(e => e.type == "subject"))
                             {
-                                var result = _definition.FindDefinition(
-                                                responseEntity.entity);
-                                if(result == null)
+                                foreach (var responseEntity in response.entities.Where(e => e.type == "subject"))
                                 {
-                                    goto default;
+                                    var result = _definition.FindDefinition(responseEntity.entity);
+                                    if (result == null) goto default;
+                                    var replyActivity = await _factory.RespondAsync(result, _activity);
+
+                                    await _factory.GetDbManager().AddActivity(replyActivity);
                                 }
-
-                                var reply = _extendedActivity.CreateReply(result);
-                                await DbController.AddOrUpdateActivityInDb(new ExtendedActivity(reply as Activity), ProcessStatus.BotMessage);
-
-                                var connector = new ConnectorClient(
-                                new Uri(_extendedActivity.ServiceUrl));
-                                await connector.Conversations.ReplyToActivityAsync(reply as Activity
-                                );                                    
-
-                                // Update activity in database , set ProcessStatus of this activity to BotReplied
-                                await DbController.AddOrUpdateActivityInDb(_extendedActivity as ExtendedActivity, ProcessStatus.BotReplied);
+                                await _factory.GetDbManager().UpdateActivity(_activity, ProcessStatus.BotReplied);
+                                break;
                             }
-                            break;
-                        }
 
                         default:
-                        {
-                            await SlackForwardAsync(_extendedActivity.Text);
-                            break;
-                        }
+                            {
+                                await SlackForwardAsync(_activity.Text);
+                                break;
+                            }
                     }
                 }
             }
@@ -123,82 +119,73 @@ namespace GraceBot
 
         private async Task RetrieveQuestionsAsync()
         {
-            var reply = (Activity)_extendedActivity.CreateReply("Unprocessed Questions:");
-            reply.Recipient = _extendedActivity.From;
-            reply.Type = "message";
-            reply.Attachments = new List<Attachment>();
+            var replyActivity = _activity.CreateReply("Unprocessed Questions:");
+            replyActivity.Recipient = _activity.From;
+            replyActivity.Type = "message";
+            replyActivity.Attachments = new List<Attachment>();
 
-            var eas = DbController.FindUnprocessedQuestions();
-            foreach (var ea in eas)
+            var unprocessedActivities = _factory.GetDbManager().FindUnprocessedQuestions();
+            foreach (var ua in unprocessedActivities)
             {
                 var cardButtons = new List<CardAction>();
                 cardButtons.Add(new CardAction()
                 {
                     Title = "Answer this question",
                     Type = "postBack",
-                    Value = $"/reply {ea.Id}"
+                    Value = $"/replyActivity {ua.Id}"
                 });
 
                 var card = new HeroCard()
                 {
-                    Subtitle = $"{ea.From.Name} asked at {ea.Timestamp}",
-                    Text = $"{ea.Text}",
+                    Subtitle = $"{ua.From.Name} asked at {ua.Timestamp}",
+                    Text = $"{ua.Text}",
                     Buttons = cardButtons
                 };
-                reply.Attachments.Add(card.ToAttachment());
+                replyActivity.Attachments.Add(card.ToAttachment());
             }
 
-            var connector = new ConnectorClient(new Uri(_extendedActivity.ServiceUrl));
-            await connector.Conversations.ReplyToActivityAsync(reply);
+            var connector = new ConnectorClient(new Uri(_activity.ServiceUrl));
+            await connector.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
         private async Task ReplyToQuestionsAsync()
         {
-
-            var replyToActivity = DbController.FindExtendedActivity(_extendedActivity.Text.Split(' ')[1]);
-            if (replyToActivity == null)
+            var questionActivity = _factory.GetDbManager().FindActivity(_activity.Text.Split(' ')[1]);
+            if (questionActivity == null)
             {
                 //do something to handle
             }
-            var stateClient = _extendedActivity.GetStateClient();
-            var userData = await stateClient.BotState.GetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id);
-            userData.SetProperty("replying", true);
-            userData.SetProperty("userQuestionID", replyToActivity.Id);
-            userData.SetProperty("replyingToActivityID", replyToActivity.ActivityId);
-            await stateClient.BotState.SetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id, userData);
+            await _factory.SetUserDataPropertyAsync("replying", true, _activity);
+            await _factory.SetUserDataPropertyAsync("replyingToQuestionID", questionActivity.Id, _activity);
 
-            var markdown = $"You are answering ***{replyToActivity.From.Name}***'s question:\n";
+            var markdown = $"You are answering ***{questionActivity.From.Name}***'s question:\n";
             markdown += "***\n";
-            markdown += $"{replyToActivity.Text}\n";
+            markdown += $"{questionActivity.Text}\n";
             markdown += "***\n";
-            markdown += "**Please give your answer in the next reply.**\n";
+            markdown += "**Please give your answer in the next replyActivity.**\n";
 
-            await _factory.RespondAsync(markdown, _extendedActivity);
+            await _factory.RespondAsync(markdown, _activity);
         }
 
         private async Task ProcessReplyAsync()
         {
-            var stateClient = _extendedActivity.GetStateClient();
-            var userData = await stateClient.BotState.GetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id);
-
             // get the userQuestion activity in order to update the process status
-            var userQuestionActivity = DbController.FindExtendedActivity(userData.GetProperty<string>("userQuestionID"));
+            var userQuestionActivity = _factory.GetDbManager().FindActivity(await _factory.GetUserDataPropertyAsync<string>("replyingToQuestionID", _activity));
 
             // set the ReplyToID of the answer acitivity to the AcitivityID of userQuestionAcitivity
-            var rangerAnswerActivity = (ExtendedActivity)_extendedActivity;
-            rangerAnswerActivity.ReplyToId = userData.GetProperty<string>("replyingToActivityID");
+            var rangerAnswerActivity = _activity;
+            rangerAnswerActivity.ReplyToId = userQuestionActivity.Id;
 
             // save the rangerAnswerAcitivty to database.
-            await DbController.AddOrUpdateActivityInDb(rangerAnswerActivity, ProcessStatus.BotReplied);
+            await _factory.GetDbManager().AddActivity(rangerAnswerActivity, ProcessStatus.BotReplied);
 
             // update the process status of userQuestionAcitivity
-            await DbController.AddOrUpdateActivityInDb(userQuestionActivity as ExtendedActivity, ProcessStatus.Processed);
-            
-            // reset replying state of the user
-            userData.SetProperty("replying", false);
-            await stateClient.BotState.SetUserDataAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id, userData);
+            await _factory.GetDbManager().UpdateActivity(userQuestionActivity, ProcessStatus.Processed);
 
-            await _factory.RespondAsync("Thanks, your answer has been received.", _extendedActivity);
+            // reset replying state of the user
+            await _factory.SetUserDataPropertyAsync("replying", false, _activity);
+
+            await _factory.RespondAsync("Thanks, your answer has been received.", _activity);
         }
 
         private async Task SlackForwardAsync(string msg)
@@ -208,7 +195,7 @@ namespace GraceBot
             
             var response = await client.PostMessageAsync(uri, new Payload()
             {
-                Text = msg,
+                Text = _activity.Text,
                 Channel = "#5-grace-questions",
                 Username = "GraceBot_UserEnquiry",
             });
@@ -219,19 +206,17 @@ namespace GraceBot
                 reply += "Your question has been sent to OMGTech! team, we will get back to you ASAP.";                
             }
 
-            var connector = new ConnectorClient(new Uri(_extendedActivity.ServiceUrl));
-            await connector.Conversations.ReplyToActivityAsync((Activity)_extendedActivity.CreateReply(reply));
+            await _factory.RespondAsync(reply, _activity);
         }
 
         private async Task HandleSystemMessage()
         {
-            switch (_extendedActivity.Type)
+            switch (_activity.Type)
             {
                 case ActivityTypes.DeleteUserData:
                     {
-                        var stateClient = _extendedActivity.GetStateClient();
-                        await stateClient.BotState.DeleteStateForUserAsync(_extendedActivity.ChannelId, _extendedActivity.From.Id);
-                        await _factory.RespondAsync($"The data of User {_extendedActivity.From.Id} has been deleted.", _extendedActivity);
+                        await _factory.DeleteStateForUserAsync(_activity);
+                        await _factory.RespondAsync($"The data of User {_activity.From.Id} has been deleted.", _activity);
                         break;
                     }
                 case ActivityTypes.ConversationUpdate:

@@ -1,9 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using Microsoft.Bot.Connector;
+using System.Threading.Tasks;
 
 namespace GraceBot
 {
     internal interface IFilter
     {
-        Task<bool> FilterAsync(IExtendedActivity activity);
+        Task<bool> FilterAsync(Activity activity);
     }
 }
