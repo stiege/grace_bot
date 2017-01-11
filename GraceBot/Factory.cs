@@ -12,20 +12,25 @@ namespace GraceBot
     {
         private static IFactory _factoryInstance;
         private static IApp _appInstance;
+
+        // disable default constructor
         private Factory()
         { }
 
+        // a static constructor
         internal static IFactory GetFactory()
         {
             _factoryInstance = _factoryInstance ?? new Factory();
             return _factoryInstance;
         }
 
+        // Return a new 
         public IHttpClient GetHttpClient()
         {
             return new GraceHttpClient(new HttpClient());
         }
 
+        // Reply to an activity as an asynchronous operation.
         public async Task<Activity> RespondAsync(string replyText, Activity originalAcitivty)
         {
             var connector = new ConnectorClient(new Uri(originalAcitivty.ServiceUrl));

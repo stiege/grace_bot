@@ -17,6 +17,7 @@ namespace GraceBot
 
         private Activity _activity;
 
+        // constructor 
         public App(IFactory factory)
         {
             _factory = factory;
@@ -25,6 +26,8 @@ namespace GraceBot
             _dbManager = _factory.GetDbManager();
         }
 
+
+        // Determine activity (message) type and process accordingly as an asynchronous operation.
         public async Task RunAsync(Activity activity)
         {
             // check Activity Type
@@ -71,6 +74,9 @@ namespace GraceBot
             }
         }
 
+
+        // Receive a new activity (user's message), analyse the intent with LUIS and process accordingly
+        // as an asynchronous operation.
         private async Task ProcessActivityAsync()
         {
             // save the activity to db
@@ -117,6 +123,8 @@ namespace GraceBot
             }
         }
 
+
+        // Retrive unprocessed questions and display them in card view as an asynchronous operation.
         private async Task RetrieveQuestionsAsync()
         {
             var replyActivity = _activity.CreateReply("Unprocessed Questions:");
@@ -148,6 +156,9 @@ namespace GraceBot
             await connector.Conversations.ReplyToActivityAsync(replyActivity);
         }
 
+
+        // Save user state data of a question clicked to reply, and notify which question is being answered
+        // as an asynchronous operation.
         private async Task ReplyToQuestionsAsync()
         {
             var questionActivity = _factory.GetDbManager().FindActivity(_activity.Text.Split(' ')[1]);
@@ -167,6 +178,8 @@ namespace GraceBot
             await _factory.RespondAsync(markdown, _activity);
         }
 
+
+        // Save the answer to database and give notification as an asynchronous operation.
         private async Task ProcessReplyAsync()
         {
             // get the userQuestion activity in order to update the process status
@@ -188,6 +201,8 @@ namespace GraceBot
             await _factory.RespondAsync("Thanks, your answer has been received.", _activity);
         }
 
+
+        // Forward an unprocessed question to a Slack channel and notify the user as an asynchronous operation.
         private async Task SlackForwardAsync(string msg)
         {
             var client = _factory.GetHttpClient();
@@ -209,6 +224,8 @@ namespace GraceBot
             await _factory.RespondAsync(reply, _activity);
         }
 
+
+        // Handle various system messages as an asynchronous operation.
         private async Task HandleSystemMessage()
         {
             switch (_activity.Type)

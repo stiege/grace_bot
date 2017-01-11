@@ -10,21 +10,26 @@ namespace GraceBot
     {
         private readonly HttpClient _client;
 
+        // constructor
         public GraceHttpClient(HttpClient client)
         {
             _client = client;
         }
 
+        // Releases the unmanaged resources and disposes of the managed resources used by
+        // the System.Net.Http.HttpMessageInvoker.
         public void Dispose()
         {
             _client.Dispose();
         }
 
+        // Send a GET request to the specified Uri as an asynchronous operation.
         public Task<HttpResponseMessage> GetAsync(string uri)
         {
             return _client.GetAsync(uri);
         }
-
+        
+        // Send a POST request to the specified Uri as an asynchronous operation.
         public Task<HttpResponseMessage> PostMessageAsync(string uri, Payload payload)
         {
             var serializedPayload = JsonConvert.SerializeObject(payload);
