@@ -5,6 +5,7 @@ using GraceBot.Models;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace GraceBot
 {
@@ -14,6 +15,9 @@ namespace GraceBot
         private readonly IFilter _filter;
         private readonly IDefinition _definition;
         private readonly IDbManager _dbManager;
+        private readonly ILuisManager _luisManager;
+        private readonly ISlackManager _slackManager;
+        private readonly IBotManager _botManager;
 
         private Activity _activity;
 
@@ -24,6 +28,9 @@ namespace GraceBot
             _filter = _factory.GetActivityFilter();
             _definition = _factory.GetActivityDefinition();
             _dbManager = _factory.GetDbManager();
+            _luisManager = _factory.GetLuisManager();
+            _slackManager = _factory.GetSlackManager();
+            _botManager = _factory.GetBotManager();
         }
 
 
@@ -32,7 +39,6 @@ namespace GraceBot
         {
             // check Activity Type
             _activity = activity;
-
             if(_activity.Type != ActivityTypes.Message)
             {
                 await HandleSystemMessage();
@@ -40,7 +46,7 @@ namespace GraceBot
             }
 
             // check state
-            var replying = await _factory.GetUserDataPropertyAsync<bool>("replying", _activity);
+            var replying = await _botManager.GetUserDataPropertyAsync<bool>("replying", _activity);
             if (replying)
             {
                 await ProcessReplyAsync();
@@ -71,7 +77,7 @@ namespace GraceBot
 
             } else
             {
-                await _factory.RespondAsync("Sorry, bad words detected, please try again.", _activity);
+                await _botManager.ReplyToActivityAsync("Sorry, bad words detected, please try again.", _activity);
             }
         }
 
@@ -83,43 +89,33 @@ namespace GraceBot
             // save the activity to db
             await _factory.GetDbManager().AddActivity(_activity, ProcessStatus.Unprocessed);
 
-            var strEscaped = Uri.EscapeUriString(_activity.Text);
-            var uri =
-                "https://api.projectoxford.ai/luis/v2.0/apps/" + Environment.GetEnvironmentVariable("LUIS_ID") +
-                "?subscription-key=" +
-                Environment.GetEnvironmentVariable("LUIS_KEY") + "&q=" +
-                strEscaped + "&verbose=true";
+            // get response from Luis
+            var response =await _luisManager.GetResponse(_activity.Text);
 
-            using (var client = _factory.GetHttpClient())
+            // Check Luis response
+            if (response!=null)
             {
-                var msg = await client.GetAsync(uri);
-                if (msg.IsSuccessStatusCode)
+                switch (response.topScoringIntent.intent)
                 {
-                    var response = JsonConvert.DeserializeObject<LuisResponse>(
-                        await msg.Content.ReadAsStringAsync());
-
-                    switch (response.topScoringIntent.intent)
-                    {
-                        case "GetDefinition":
+                    case "GetDefinition":
+                        {
+                            foreach (var responseEntity in response.entities.Where(e => e.type == "subject"))
                             {
-                                foreach (var responseEntity in response.entities.Where(e => e.type == "subject"))
-                                {
-                                    var result = _definition.FindDefinition(responseEntity.entity);
-                                    if (result == null) goto default;
-                                    var replyActivity = await _factory.RespondAsync(result, _activity);
+                                var result = _definition.FindDefinition(responseEntity.entity);
+                                if (result == null) goto default;
+                                var replyActivity = await _botManager.ReplyToActivityAsync(result, _activity);
 
-                                    await _factory.GetDbManager().AddActivity(replyActivity);
-                                }
-                                await _factory.GetDbManager().UpdateActivity(_activity, ProcessStatus.BotReplied);
-                                break;
+                                await _factory.GetDbManager().AddActivity(replyActivity);
                             }
+                            await _factory.GetDbManager().UpdateActivity(_activity, ProcessStatus.BotReplied);
+                            break;
+                        }
 
-                        default:
-                            {
-                                await SlackForwardAsync(_activity.Text);
-                                break;
-                            }
-                    }
+                    default:
+                        {
+                            await SlackForwardAsync(_activity.Text);
+                            break;
+                        }
                 }
             }
         }
@@ -128,34 +124,24 @@ namespace GraceBot
         // Retrive unprocessed questions and display them in card view as an asynchronous operation.
         private async Task RetrieveQuestionsAsync()
         {
-            var replyActivity = _activity.CreateReply("Unprocessed Questions:");
-            replyActivity.Recipient = _activity.From;
-            replyActivity.Type = "message";
-            replyActivity.Attachments = new List<Attachment>();
+            // Get all unprocessd activities from database
+            var unprocessedActivities = _factory.GetDbManager().FindUnprocessedQuestions();
 
-            var unprocessedActivities = _factory.GetDbManager().FindUnprocessedQuestions(5);
-            foreach (var ua in unprocessedActivities)
+            // Create reply activity          
+
+            if (unprocessedActivities.Any())
             {
-                var cardButtons = new List<CardAction>();
-                cardButtons.Add(new CardAction()
-                {
-                    Title = "Answer this question",
-                    Type = "postBack",
-                    Value = $"/replyActivity {ua.Id}"
-                });
+                var attachments =_botManager.GenerateQuestionsAttachments(unprocessedActivities);
+               await _botManager.ReplyToActivityAsync("Unprocessed Questions:",_activity,attachments);
 
-                var card = new HeroCard()
-                {
-                    Subtitle = $"{ua.From.Name} asked at {ua.Timestamp}",
-                    Text = $"{ua.Text}",
-                    Buttons = cardButtons
-                };
-                replyActivity.Attachments.Add(card.ToAttachment());
+            }
+            else
+            {
+                await _botManager.ReplyToActivityAsync("No Unprocessed Questions Found.", _activity);
             }
 
-            var connector = new ConnectorClient(new Uri(_activity.ServiceUrl));
-            await connector.Conversations.ReplyToActivityAsync(replyActivity);
         }
+
 
 
         // Save user state data of a question clicked to reply, and notify which question is being answered
@@ -167,8 +153,8 @@ namespace GraceBot
             {
                 //do something to handle
             }
-            await _factory.SetUserDataPropertyAsync("replying", true, _activity);
-            await _factory.SetUserDataPropertyAsync("replyingToQuestionID", questionActivity.Id, _activity);
+            await _botManager.SetUserDataPropertyAsync("replying", true, _activity);
+            await _botManager.SetUserDataPropertyAsync("replyingToQuestionID", questionActivity.Id, _activity);
 
             var markdown = $"You are answering ***{questionActivity.From.Name}***'s question:\n";
             markdown += "***\n";
@@ -176,7 +162,7 @@ namespace GraceBot
             markdown += "***\n";
             markdown += "**Please give your answer in the next replyActivity.**\n";
 
-            await _factory.RespondAsync(markdown, _activity);
+            await _botManager.ReplyToActivityAsync(markdown, _activity);
         }
 
 
@@ -184,7 +170,7 @@ namespace GraceBot
         private async Task ProcessReplyAsync()
         {
             // get the userQuestion activity in order to update the process status
-            var userQuestionActivity = _factory.GetDbManager().FindActivity(await _factory.GetUserDataPropertyAsync<string>("replyingToQuestionID", _activity));
+            var userQuestionActivity = _factory.GetDbManager().FindActivity(await _botManager.GetUserDataPropertyAsync<string>("replyingToQuestionID", _activity));
 
             // set the ReplyToID of the answer acitivity to the AcitivityID of userQuestionAcitivity
             var rangerAnswerActivity = _activity;
@@ -197,32 +183,25 @@ namespace GraceBot
             await _factory.GetDbManager().UpdateActivity(userQuestionActivity, ProcessStatus.Processed);
 
             // reset replying state of the user
-            await _factory.SetUserDataPropertyAsync("replying", false, _activity);
+            await _botManager.SetUserDataPropertyAsync("replying", false, _activity);
 
-            await _factory.RespondAsync("Thanks, your answer has been received.", _activity);
+            await _botManager.ReplyToActivityAsync("Thanks, your answer has been received.", _activity);
         }
 
 
         // Forward an unprocessed question to a Slack channel and notify the user as an asynchronous operation.
         private async Task SlackForwardAsync(string msg)
         {
-            var client = _factory.GetHttpClient();
-            var uri = Environment.GetEnvironmentVariable("WEBHOOK_URL");
-            
-            var response = await client.PostMessageAsync(uri, new Payload()
-            {
-                Text = _activity.Text,
-                Channel = "#5-grace-questions",
-                Username = "GraceBot_UserEnquiry",
-            });
+
+            var forwardResult = await _slackManager.Forward(msg);
 
             var reply = "Sorry, we currently don't have an answer for your question";
-            if (response.IsSuccessStatusCode)
+            if (forwardResult)
             {
                 reply += "Your question has been sent to OMGTech! team, we will get back to you ASAP.";                
             }
 
-            await _factory.RespondAsync(reply, _activity);
+            await _botManager.ReplyToActivityAsync(reply, _activity);
         }
 
 
@@ -233,8 +212,8 @@ namespace GraceBot
             {
                 case ActivityTypes.DeleteUserData:
                     {
-                        await _factory.DeleteStateForUserAsync(_activity);
-                        await _factory.RespondAsync($"The data of User {_activity.From.Id} has been deleted.", _activity);
+                        await _botManager.DeleteStateForUserAsync(_activity);
+                        await _botManager.ReplyToActivityAsync($"The data of User {_activity.From.Id} has been deleted.", _activity);
                         break;
                     }
                 case ActivityTypes.ConversationUpdate:

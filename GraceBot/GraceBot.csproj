@@ -179,8 +179,13 @@
     <Compile Include="ActivityFilter.cs" />
     <Compile Include="App.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="BotManager.cs" />
     <Compile Include="DbManager.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
+    <Compile Include="IBotManager.cs" />
+    <Compile Include="ILuisManager.cs" />
+    <Compile Include="ISlackManager.cs" />
+    <Compile Include="LuisManager.cs" />
     <Compile Include="Migrations\201701090121503_ModifyModels.cs" />
     <Compile Include="Migrations\201701090121503_ModifyModels.Designer.cs">
       <DependentUpon>201701090121503_ModifyModels.cs</DependentUpon>
@@ -210,6 +215,7 @@
     <Compile Include="Models\GraceBotContext.cs" />
     <Compile Include="Models\Payload.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SlackManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />

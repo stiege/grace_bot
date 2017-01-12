@@ -32,6 +32,18 @@ namespace GraceBot
             return new GraceHttpClient(new HttpClient());
         }
 
+        // Return a new 
+        public ILuisManager GetLuisManager()
+        {
+            return new LuisManager();
+        }
+
+        // Return a new 
+        public ISlackManager GetSlackManager()
+        {
+            return new SlackManager();
+        }
+
         // Reply to an activity as an asynchronous operation.
         public async Task<Activity> RespondAsync(string replyText, Activity originalAcitivty)
         {
@@ -72,25 +84,10 @@ namespace GraceBot
             return new DbManager(new Models.GraceBotContext("name=TestLocalContext"));
         }
 
-        public async Task<T> GetUserDataPropertyAsync<T>(string property, Activity activity)
+        public IBotManager GetBotManager()
         {
-            var stateClient = activity.GetStateClient();
-            var userData = await stateClient.BotState.GetUserDataAsync(activity.ChannelId, activity.From.Id);
-            return userData.GetProperty<T>(property);
+            return new BotManager();
         }
 
-        public async Task SetUserDataPropertyAsync<T>(string property, T data, Activity activity)
-        {
-            var stateClient = activity.GetStateClient();
-            var userData = await stateClient.BotState.GetUserDataAsync(activity.ChannelId, activity.From.Id);
-            userData.SetProperty<T>(property, data);
-            await stateClient.BotState.SetUserDataAsync(activity.ChannelId, activity.From.Id, userData);
-        }
-
-        public async Task<string[]> DeleteStateForUserAsync(Activity activity)
-        {
-            var stateClient = activity.GetStateClient();
-            return await stateClient.BotState.DeleteStateForUserAsync(activity.ChannelId, activity.From.Id);
-        }
     }
 }
