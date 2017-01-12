@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
+using System.Data.Entity;
 
 namespace GraceBot
 {
-    internal class Factory: IFactory
+    internal class Factory : IFactory
     {
         private static IFactory _factoryInstance;
         private static IApp _appInstance;
@@ -67,7 +69,7 @@ namespace GraceBot
 
         public IDbManager GetDbManager()
         {
-            return new DbManager(new Models.GraceBotContext());
+            return new DbManager(new Models.GraceBotContext("name=TestLocalContext"));
         }
 
         public async Task<T> GetUserDataPropertyAsync<T>(string property, Activity activity)

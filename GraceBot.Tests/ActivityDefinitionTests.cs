@@ -12,8 +12,7 @@ namespace GraceBot.Tests
         [Test]
         public void RunWithBadWordTest()
         {
-            var testLookup = new Dictionary<string, string>()
-            { { "KEY", "value"} };
+            var testLookup = new Dictionary<string, string> { { "KEY", "value"} };
             var dut = new ActivityDefinition(testLookup);
             Assert.That(dut.FindDefinition("KEY"), Is.EqualTo("value"));
         }

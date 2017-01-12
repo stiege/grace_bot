@@ -32,6 +32,7 @@ namespace GraceBot
         {
             // check Activity Type
             _activity = activity;
+
             if(_activity.Type != ActivityTypes.Message)
             {
                 await HandleSystemMessage();
@@ -132,7 +133,7 @@ namespace GraceBot
             replyActivity.Type = "message";
             replyActivity.Attachments = new List<Attachment>();
 
-            var unprocessedActivities = _factory.GetDbManager().FindUnprocessedQuestions();
+            var unprocessedActivities = _factory.GetDbManager().FindUnprocessedQuestions(5);
             foreach (var ua in unprocessedActivities)
             {
                 var cardButtons = new List<CardAction>();

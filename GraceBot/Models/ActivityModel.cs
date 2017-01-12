@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Bot.Connector;
 using System.Net.Http;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GraceBot.Models
 {
@@ -36,6 +37,8 @@ namespace GraceBot.Models
             set { _activity.Type = value; }
         }
 
+        [Index("IX_ActivityId", IsUnique = true)]
+        [MaxLength(64)]
         public string ActivityId
         {
             get { return _activity.Id; }
