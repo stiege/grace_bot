@@ -9,7 +9,7 @@ namespace GraceBot.Migrations
     {
         public Configuration()
         {
-            AutomaticMigrationsEnabled = true;
+            AutomaticMigrationsEnabled = false;
         }
 
         protected override void Seed(GraceBot.Models.GraceBotContext context)

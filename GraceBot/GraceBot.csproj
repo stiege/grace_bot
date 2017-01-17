@@ -194,6 +194,10 @@
     <Compile Include="Migrations\201701090328037_ModifyActivityModel.Designer.cs">
       <DependentUpon>201701090328037_ModifyActivityModel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201701170219384_AddUnqiueIndexForActivityId.cs" />
+    <Compile Include="Migrations\201701170219384_AddUnqiueIndexForActivityId.Designer.cs">
+      <DependentUpon>201701170219384_AddUnqiueIndexForActivityId.cs</DependentUpon>
+    </Compile>
     <Compile Include="Models\ActivityModel.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="Global.asax.cs">
@@ -222,8 +226,6 @@
     <Content Include="BadWords\en">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="ClassDiagram1.cd" />
-    <Content Include="ClassDiagram2.cd" />
     <None Include="Properties\PublishProfiles\GraceBot20161125125146 - Web Deploy.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -244,6 +246,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201701090328037_ModifyActivityModel.resx">
       <DependentUpon>201701090328037_ModifyActivityModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201701170219384_AddUnqiueIndexForActivityId.resx">
+      <DependentUpon>201701170219384_AddUnqiueIndexForActivityId.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

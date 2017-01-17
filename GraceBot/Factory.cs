@@ -81,7 +81,7 @@ namespace GraceBot
 
         public IDbManager GetDbManager()
         {
-            return new DbManager(new Models.GraceBotContext("name=TestLocalContext"));
+            return new DbManager(new Models.GraceBotContext());
         }
 
         public IBotManager GetBotManager()

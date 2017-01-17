@@ -38,6 +38,7 @@ namespace GraceBot
             AttachReference(activityModel);
             _db.Activities.Add(activityModel);
             await _db.SaveChangesAsync();
+
         }
 
         // Implement the method defined in IDbManager interface.
@@ -61,7 +62,7 @@ namespace GraceBot
                 oldRecord.ReplyToId = activity.ReplyToId;
 
                 oldRecord.ProcessStatus = processStatus ?? oldRecord.ProcessStatus;
-
+                AttachReference(oldRecord);
                 await _db.SaveChangesAsync();
             }
             else throw new DataException("No matching Activity record is found.");

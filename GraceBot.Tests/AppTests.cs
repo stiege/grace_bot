@@ -86,7 +86,9 @@ namespace GraceBot.Tests
                     intent = ""
                 }
             };
-
+            
+            mFactory.Setup(o => o.GetBotManager().GetUserDataPropertyAsync<bool>(It.IsAny<string>(), It.IsAny<Activity>()))
+                .Returns(Task.FromResult(false));
             mFactory.Setup(f => f.GetActivityFilter().FilterAsync(It.IsAny<Activity>())).Returns(Task.FromResult(true));
             mFactory.Setup(o => o.GetDbManager().AddActivity(It.IsAny<Activity>(), It.IsAny<ProcessStatus>())).Returns(Task.CompletedTask);
             mFactory.Setup(o=>o.GetLuisManager().GetResponse(It.IsAny<string>())).Returns(Task.FromResult(response));
@@ -137,7 +139,7 @@ namespace GraceBot.Tests
             _activity.Type = ActivityTypes.Message;
 
             var mFactory = new Mock<IFactory>();
-            mFactory.Setup((o => o.GetDbManager().FindUnprocessedQuestions()))
+            mFactory.Setup((o => o.GetDbManager().FindUnprocessedQuestions(5)))
                .Returns(new List<Activity>());
             mFactory.Setup(o => o.GetBotManager().GetUserDataPropertyAsync<bool>(It.IsAny<string>(), It.IsAny<Activity>()))
     .Returns(Task.FromResult(false));
