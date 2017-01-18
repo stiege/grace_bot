@@ -150,7 +150,74 @@ namespace GraceBot.Tests
 
         }
 
+        [Test]
+        public async Task RetrieveQuestionsTest()
+        {
+            _activity.Text = "/get";
+            _activity.Type = ActivityTypes.Message;
+            var activitiesList = new List<Activity>()
+            {
+                new Activity(){}
+            };
 
+            var attachementsList=new List<Attachment>();
+
+
+            var mFactory = new Mock<IFactory>();
+            mFactory.Setup((o => o.GetDbManager().FindUnprocessedQuestions(5)))
+               .Returns(activitiesList);
+            mFactory.Setup(o => o.GetBotManager().GetUserDataPropertyAsync<bool>(It.IsAny<string>(), It.IsAny<Activity>()))
+    .Returns(Task.FromResult(false));
+            mFactory.Setup(o => o.GetActivityFilter().FilterAsync(_activity)).Returns(Task.FromResult(true));
+            mFactory.Setup(o => o.GetBotManager().GenerateQuestionsAttachments(activitiesList)).Returns(attachementsList);
+
+            var app = new App(mFactory.Object);
+
+            await app.RunAsync(_activity);
+
+            var expectedReply = "Unprocessed Questions:";
+
+            mFactory.Verify(f => f.GetBotManager().ReplyToActivityAsync(expectedReply, _activity, attachementsList));
+        }
+
+        [Test]
+        public async Task ReplyToQuestionsTest()
+        {
+            _activity.Text = "/replyActivity 1234";
+            _activity.Type = ActivityTypes.Message;
+
+            var questionActivity=new Activity()
+            {
+                Id = "1234",
+                Text = "what is test?",
+                From = new ChannelAccount()
+                {
+                    Name = "FromName"
+                }
+            };
+
+            var expectedResult=  $"You are answering ***{questionActivity.From.Name}***'s question:\n";
+            expectedResult += "***\n";
+            expectedResult += $"{questionActivity.Text}\n";
+            expectedResult += "***\n";
+            expectedResult += "**Please give your answer in the next replyActivity.**\n";
+
+            var mFactory = new Mock<IFactory>();
+            mFactory.Setup(o => o.GetDbManager().FindActivity(It.IsAny<string>()))
+                .Returns(questionActivity);
+            mFactory.Setup(o => o.GetBotManager().SetUserDataPropertyAsync("replying", true, _activity))
+                .Returns(Task.CompletedTask);
+            mFactory.Setup(o => o.GetBotManager().SetUserDataPropertyAsync("replyingToQuestionID", questionActivity.Id, _activity))
+                .Returns(Task.CompletedTask);
+            mFactory.Setup(o => o.GetActivityFilter().FilterAsync(_activity)).Returns(Task.FromResult(true));
+
+            var app = new App(mFactory.Object);
+
+            await app.RunAsync(_activity);
+
+            mFactory.Verify(f => f.GetBotManager().ReplyToActivityAsync(expectedResult, _activity, null));
+
+        }
 
         [TearDown]
         public void ResetActivity()

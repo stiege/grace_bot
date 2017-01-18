@@ -203,13 +203,11 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="GraceHttpClient.cs" />
     <Compile Include="IApp.cs" />
     <Compile Include="IDbManager.cs" />
     <Compile Include="IDefinition.cs" />
     <Compile Include="IFactory.cs" />
     <Compile Include="IFilter.cs" />
-    <Compile Include="IHttpClient.cs" />
     <Compile Include="Models\ChannelAccountModel.cs" />
     <Compile Include="Models\ConversationAccountModel.cs" />
     <Compile Include="Models\LuisResponse.cs" />

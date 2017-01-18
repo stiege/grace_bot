@@ -13,8 +13,6 @@ namespace GraceBot
 
         IFilter GetActivityFilter();
 
-        IHttpClient GetHttpClient();
-
         IDbManager GetDbManager();
 
         ILuisManager GetLuisManager();

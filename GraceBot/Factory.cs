@@ -27,12 +27,6 @@ namespace GraceBot
         }
 
         // Return a new 
-        public IHttpClient GetHttpClient()
-        {
-            return new GraceHttpClient(new HttpClient());
-        }
-
-        // Return a new 
         public ILuisManager GetLuisManager()
         {
             return new LuisManager();
@@ -42,15 +36,6 @@ namespace GraceBot
         public ISlackManager GetSlackManager()
         {
             return new SlackManager();
-        }
-
-        // Reply to an activity as an asynchronous operation.
-        public async Task<Activity> RespondAsync(string replyText, Activity originalAcitivty)
-        {
-            var connector = new ConnectorClient(new Uri(originalAcitivty.ServiceUrl));
-            var replyAcitivty = originalAcitivty.CreateReply(replyText);
-            await connector.Conversations.ReplyToActivityAsync(replyAcitivty);
-            return replyAcitivty;
         }
 
         public IApp GetApp()
