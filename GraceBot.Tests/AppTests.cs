@@ -3,11 +3,6 @@ using Microsoft.Bot.Connector;
 using NUnit.Framework;
 using Moq;
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Web.Http;
-using System.Web.Http.Hosting;
-using GraceBot.Controllers;
 using GraceBot.Models;
 
 namespace GraceBot.Tests
@@ -118,7 +113,7 @@ namespace GraceBot.Tests
                 .Returns((new Activity() {Id = "1234"}));
             mFactory.Setup(o => o.GetDbManager().AddActivity(It.IsAny<Activity>(), It.IsAny<ProcessStatus>()))
                 .Returns(Task.CompletedTask);
-            mFactory.Setup(o => o.GetDbManager().UpdateActivity(It.IsAny<Activity>(), It.IsAny<ProcessStatus>()))
+            mFactory.Setup(o => o.GetDbManager().UpdateActivityProcessStatus(It.IsAny<string>(), It.IsAny<ProcessStatus>()))
                 .Returns(Task.CompletedTask);
             mFactory.Setup(o => o.GetBotManager().SetUserDataPropertyAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<Activity>()))
                 .Returns(Task.CompletedTask);

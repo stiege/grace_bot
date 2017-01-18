@@ -1,0 +1,85 @@
+[33mcommit 5edb9197e06c5afd470a0056d88faab3ac702d86[m
+Author: NightRare <vinceyuan15@live.com>
+Date:   Tue Jan 17 15:37:44 2017 +1300
+
+    Fix bugs derived from merging
+
+[33mcommit df70471d99514c8daefe55543486d5b9d22c1666[m
+Merge: d223ce2 44ae365
+Author: NightRare <vinceyuan15@live.com>
+Date:   Tue Jan 17 14:40:01 2017 +1300
+
+    Merge with 44ae365
+
+[33mcommit d223ce2b01d0155268eaf9593f20bc3abf0d131b[m
+Author: NightRare <vinceyuan15@live.com>
+Date:   Tue Jan 17 14:25:28 2017 +1300
+
+    Finish DbManagerTests
+
+[33mcommit 44ae3658bd19f44a475b6aa6ed571e78edc98afc[m
+Merge: 150ace0 d7dc5c8
+Author: liuta <liuta@DESKTOP-02B96UK>
+Date:   Tue Jan 17 14:21:46 2017 +1300
+
+    Add app tests; Optimize app.cs
+
+[33mcommit 150ace0b84b69c9b9863820485af0218770c69f9[m
+Author: liuta <liuta@DESKTOP-02B96UK>
+Date:   Tue Jan 17 14:02:05 2017 +1300
+
+    Add app tests; Optimize app.cs
+
+[33mcommit d7dc5c84ffe649f07514be8f83cd64ab955f50bf[m
+Author: NightRare <vinceyuan15@live.com>
+Date:   Fri Jan 13 17:27:35 2017 +1300
+
+    Add db tests and correct related code
+
+[33mcommit 4eaccb8b4a1c20acafebb3d8e36128b15885e422[m
+Author: NightRare <vinceyuan15@live.com>
+Date:   Thu Jan 12 15:41:15 2017 +1300
+
+    (Temp) Adding unit tests
+
+[33mcommit 9ca03f3c4c455d2e700b3d473f0f1f0b79751a70[m
+Author: kei chin <kei chin>
+Date:   Wed Jan 11 15:26:15 2017 +1300
+
+    Add docs and comments
+
+[33mcommit f511e2c98de5bf58e9435829699556967690e98a[m
+Author: NightRare <vinceyuan15@live.com>
+Date:   Tue Jan 10 11:30:31 2017 +1300
+
+    Upgrade Bot Framework to 3.5.0
+
+[33mcommit f4a0be88faf8eecb085f8f4232958da1e4c44777[m
+Author: NightRare <vinceyuan15@live.com>
+Date:   Tue Jan 10 11:09:34 2017 +1300
+
+    Optimise DbManager method logic
+
+[33mcommit 4d4fb81be1e6653f3599a939f8528054e00b3321[m
+Author: NightRare <vinceyuan15@live.com>
+Date:   Tue Jan 10 09:51:55 2017 +1300
+
+    Restructure the classes and db models
+
+[33mcommit 57d9a9cc01dec4f18499edc0b6ed10b95c94d34a[m
+Author: NightRare <vinceyuan15@live.com>
+Date:   Mon Dec 19 14:58:12 2016 +1300
+
+    Optimise database process after replying
+
+[33mcommit b00eba993be38a3bb37862450fc9c07827da968b[m
+Author: liuta <liuta@DESKTOP-02B96UK>
+Date:   Fri Dec 16 12:23:54 2016 +1300
+
+    Fix null reference issue when retriving ExtendedActivity List from database
+
+[33mcommit 127055614a0dbe054a1dc8a853b0a8077f925edc[m
+Author: NightRare <vinceyuan15@live.com>
+Date:   Thu Dec 15 17:34:08 2016 +1300
+
+    Add feature saving reply to DB

@@ -186,17 +186,17 @@
     <Compile Include="ILuisManager.cs" />
     <Compile Include="ISlackManager.cs" />
     <Compile Include="LuisManager.cs" />
-    <Compile Include="Migrations\201701090121503_ModifyModels.cs" />
-    <Compile Include="Migrations\201701090121503_ModifyModels.Designer.cs">
-      <DependentUpon>201701090121503_ModifyModels.cs</DependentUpon>
+    <Compile Include="Migrations\201701180329236_InitNewSchemaDb.cs" />
+    <Compile Include="Migrations\201701180329236_InitNewSchemaDb.Designer.cs">
+      <DependentUpon>201701180329236_InitNewSchemaDb.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201701090328037_ModifyActivityModel.cs" />
-    <Compile Include="Migrations\201701090328037_ModifyActivityModel.Designer.cs">
-      <DependentUpon>201701090328037_ModifyActivityModel.cs</DependentUpon>
+    <Compile Include="Migrations\201701180354437_RemoveUniqueIndexOnActivityId.cs" />
+    <Compile Include="Migrations\201701180354437_RemoveUniqueIndexOnActivityId.Designer.cs">
+      <DependentUpon>201701180354437_RemoveUniqueIndexOnActivityId.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201701170219384_AddUnqiueIndexForActivityId.cs" />
-    <Compile Include="Migrations\201701170219384_AddUnqiueIndexForActivityId.Designer.cs">
-      <DependentUpon>201701170219384_AddUnqiueIndexForActivityId.cs</DependentUpon>
+    <Compile Include="Migrations\201701180355332_AddUniqueNullableIndexForActivityId.cs" />
+    <Compile Include="Migrations\201701180355332_AddUniqueNullableIndexForActivityId.Designer.cs">
+      <DependentUpon>201701180355332_AddUniqueNullableIndexForActivityId.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\ActivityModel.cs" />
     <Compile Include="Factory.cs" />
@@ -210,16 +210,15 @@
     <Compile Include="IFactory.cs" />
     <Compile Include="IFilter.cs" />
     <Compile Include="IHttpClient.cs" />
+    <Compile Include="Models\ChannelAccountModel.cs" />
+    <Compile Include="Models\ConversationAccountModel.cs" />
     <Compile Include="Models\LuisResponse.cs" />
-    <Compile Include="Migrations\201612152039021_Init.cs" />
-    <Compile Include="Migrations\201612152039021_Init.Designer.cs">
-      <DependentUpon>201612152039021_Init.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\GraceBotContext.cs" />
     <Compile Include="Models\Payload.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SlackManager.cs" />
+    <Compile Include="Models\UserAccount.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
@@ -236,19 +235,15 @@
     </None>
     <Content Include="Words\dictionary.json" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201612152039021_Init.resx">
-      <DependentUpon>201612152039021_Init.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201701180329236_InitNewSchemaDb.resx">
+      <DependentUpon>201701180329236_InitNewSchemaDb.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201701090121503_ModifyModels.resx">
-      <DependentUpon>201701090121503_ModifyModels.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201701180354437_RemoveUniqueIndexOnActivityId.resx">
+      <DependentUpon>201701180354437_RemoveUniqueIndexOnActivityId.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201701090328037_ModifyActivityModel.resx">
-      <DependentUpon>201701090328037_ModifyActivityModel.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201701170219384_AddUnqiueIndexForActivityId.resx">
-      <DependentUpon>201701170219384_AddUnqiueIndexForActivityId.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201701180355332_AddUniqueNullableIndexForActivityId.resx">
+      <DependentUpon>201701180355332_AddUniqueNullableIndexForActivityId.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

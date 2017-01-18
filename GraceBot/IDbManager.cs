@@ -31,21 +31,21 @@ namespace GraceBot
         Task AddActivity(Activity activity, ProcessStatus processStatus = ProcessStatus.BotMessage);
 
         /// <summary> 
-        /// Updates an activity whose process status is as given. The Activity record with the 
-        /// same <see cref="Activity.Id"/> will be updated. 
+        /// Updates the process status of an Activity. 
         /// </summary>
         /// 
-        /// <param name="activity">The activity to be updated in database.</param>
+        /// <param name="activityId">The <see cref="Activity.Id"/> of the Activity to be updated 
+        /// in database.</param>
         /// <param name="processStatus">The process status of the activity.</param>
-        /// <exception cref="System.ArgumentNullException">Thrown when activity is null or 
-        /// <see cref="Activity.Id"/> is null. </exception>
+        /// 
+        /// <exception cref="System.ArgumentNullException">Thrown when activityId is null. </exception>
         /// <exception cref="System.Data.DataException">Thrown when no matching
         /// Activity can be updated. </exception>
         /// <exception cref="System.Data.DataException">Thrown when updating activity
         /// failed due to data source.</exception> 
         /// 
         /// <returns></returns>
-        Task UpdateActivity(Activity activity, ProcessStatus? processStatus = null);
+        Task UpdateActivityProcessStatus(string activityId, ProcessStatus processStatus);
 
         /// <summary>
         /// Locates the Activity instance with the given id.
@@ -57,7 +57,7 @@ namespace GraceBot
         Activity FindActivity(string id);
 
         /// <summary>
-        /// Return a list of activities whose process status are <see cref="ProcessStatus.Unprocessed"/>.
+        /// Returns a list of activities whose process status are <see cref="ProcessStatus.Unprocessed"/>.
         /// </summary>
         /// 
         /// <param name="amount">The max number of unprocessed activities wished to be included.</param>
@@ -65,5 +65,17 @@ namespace GraceBot
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when amount is less than 1.</exception>
         /// <returns></returns>
         List<Activity> FindUnprocessedQuestions(int amount);
+
+        /// <summary>
+        /// Gets the Role of a UserAccount given the id of one of the user's ChannelAccount.
+        /// </summary>
+        /// 
+        /// <param name="channelAccountId">The id of the user's ChannelAccount</param>
+        /// 
+        /// <exception cref="System.ArgumentNullException">Thrown when channelAccountId is null.</exception>
+        /// <exception cref="System.Data.DataException">Thrown when the given id is not in the database.</exception>
+        /// 
+        /// <returns></returns>
+        UserRole GetUserRole(string channelAccountId);
     }
 }

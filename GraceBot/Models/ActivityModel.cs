@@ -8,21 +8,26 @@ namespace GraceBot.Models
 {
     public class ActivityModel
     {
-        private  Activity _activity;
+        private Activity _activity;
 
         private ActivityModel()
         {
             _activity = new Activity();
         }
 
-        public ActivityModel(Activity activity)
+        public ActivityModel(Activity activity, ChannelAccountModel from = null, 
+            ChannelAccountModel recipient = null, ConversationAccountModel conversation = null)
         {
             _activity = activity;
             Id = Guid.NewGuid().ToString();
+
+            From = from ?? new ChannelAccountModel(_activity.From);
+            Recipient = recipient ?? new ChannelAccountModel(_activity.Recipient);
+            Conversation = conversation ?? new ConversationAccountModel(_activity.Conversation);
         }
 
         [Key]
-        public string Id { get; set; }
+        public string Id { get; private set; }
 
         public string Text
         {
@@ -37,8 +42,6 @@ namespace GraceBot.Models
             set { _activity.Type = value; }
         }
 
-        [Index("IX_ActivityId", IsUnique = true)]
-        [MaxLength(64)]
         public string ActivityId
         {
             get { return _activity.Id; }
@@ -91,24 +94,9 @@ namespace GraceBot.Models
         [EnumDataType(typeof(ProcessStatus))]
         public ProcessStatus ProcessStatus { get; set; }
 
-        public virtual ChannelAccount From
-        {
-            get { return _activity.From; }
-            set { _activity.From = value;
-            }
-        }
-        public virtual ChannelAccount Recipient
-        {
-            get { return _activity.Recipient; }
-            set { _activity.Recipient = value;
-            }
-        }
-        public virtual ConversationAccount Conversation
-        {
-            get { return _activity.Conversation; }
-            set { _activity.Conversation = value; }
-        }
-
+        public virtual ChannelAccountModel From { get; set; }
+        public virtual ChannelAccountModel Recipient { get; set; }
+        public virtual ConversationAccountModel Conversation { get; set; }
     }
 
     public enum ProcessStatus

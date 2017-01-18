@@ -15,17 +15,12 @@ namespace GraceBot.Models
     
         public GraceBotContext() : base("name=GraceBotContext")
         {
-        }
-         
+        }         
 
         public virtual DbSet<ActivityModel> Activities { get; set; }
-        public virtual DbSet<ChannelAccount> ChannelAccounts { get; set; }
-        public virtual DbSet<ConversationAccount> ConversationAccounts { get; set; }
-
-        internal void SaveChangesAysnc()
-        {
-            throw new NotImplementedException();
-        }
+        public virtual DbSet<ChannelAccountModel> ChannelAccounts { get; set; }
+        public virtual DbSet<ConversationAccountModel> ConversationAccounts { get; set; }
+        public virtual DbSet<UserAccount> UserAccounts { get; set; }
     }
 
 }

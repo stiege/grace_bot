@@ -2,8 +2,8 @@ namespace GraceBot.Migrations
 {
     using System;
     using System.Data.Entity.Migrations;
-    
-    public partial class AddUnqiueIndexForActivityId : DbMigration
+
+    public partial class AddUniqueNullableIndexForActivityId : DbMigration
     {
         public override void Up()
         {
@@ -14,7 +14,7 @@ namespace GraceBot.Migrations
                 WHERE {2} IS NOT NULL;",
                 "IX_ActivityId", "dbo.ActivityModels", "ActivityId"));
         }
-        
+
         public override void Down()
         {
             DropIndex("dbo.ActivityModels", "IX_ActivityId");

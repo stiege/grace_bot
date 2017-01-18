@@ -1,7 +1,4 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Bot.Connector;
-using NUnit.Framework;
-using Moq;
+﻿using NUnit.Framework;
 using System.Collections.Generic;
 
 namespace GraceBot.Tests

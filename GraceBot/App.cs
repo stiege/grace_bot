@@ -107,7 +107,7 @@ namespace GraceBot
 
                                 await _factory.GetDbManager().AddActivity(replyActivity);
                             }
-                            await _factory.GetDbManager().UpdateActivity(_activity, ProcessStatus.BotReplied);
+                            await _factory.GetDbManager().UpdateActivityProcessStatus(_activity.Id, ProcessStatus.BotReplied);
                             break;
                         }
 
@@ -119,7 +119,6 @@ namespace GraceBot
                 }
             }
         }
-
 
         // Retrive unprocessed questions and display them in card view as an asynchronous operation.
         private async Task RetrieveQuestionsAsync()
@@ -180,7 +179,7 @@ namespace GraceBot
             await _factory.GetDbManager().AddActivity(rangerAnswerActivity, ProcessStatus.BotReplied);
 
             // update the process status of userQuestionAcitivity
-            await _factory.GetDbManager().UpdateActivity(userQuestionActivity, ProcessStatus.Processed);
+            await _factory.GetDbManager().UpdateActivityProcessStatus(userQuestionActivity.Id, ProcessStatus.Processed);
 
             // reset replying state of the user
             await _botManager.SetUserDataPropertyAsync("replying", false, _activity);

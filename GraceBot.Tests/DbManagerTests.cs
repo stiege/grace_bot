@@ -15,8 +15,10 @@ namespace GraceBot.Tests
     class DbManagerTests
     {
         private Mock<DbSet<ActivityModel>> _mockActivities;
-        private Mock<DbSet<ChannelAccount>> _mockChannelAccounts;
-        private Mock<DbSet<ConversationAccount>> _mockConversationAccounts;
+        private Mock<DbSet<ChannelAccountModel>> _mockChannelAccounts;
+        private Mock<DbSet<ConversationAccountModel>> _mockConversationAccounts;
+        private Mock<DbSet<UserAccount>> _mockUserAccounts;
+
         private Mock<GraceBotContext> _mockContext;
         private DbManager _dbManager;
 
@@ -24,13 +26,15 @@ namespace GraceBot.Tests
         public void Setup()
         {
             _mockActivities = new Mock<DbSet<ActivityModel>>();
-            _mockChannelAccounts = new Mock<DbSet<ChannelAccount>>();
-            _mockConversationAccounts = new Mock<DbSet<ConversationAccount>>();
+            _mockChannelAccounts = new Mock<DbSet<ChannelAccountModel>>();
+            _mockConversationAccounts = new Mock<DbSet<ConversationAccountModel>>();
+            _mockUserAccounts = new Mock<DbSet<UserAccount>>();
             _mockContext = new Mock<GraceBotContext>();
 
             _mockContext.Setup(m => m.Activities).Returns(_mockActivities.Object);
             _mockContext.Setup(m => m.ChannelAccounts).Returns(_mockChannelAccounts.Object);
             _mockContext.Setup(m => m.ConversationAccounts).Returns(_mockConversationAccounts.Object);
+            _mockContext.Setup(m => m.UserAccounts).Returns(_mockUserAccounts.Object);
 
             _dbManager = new DbManager(_mockContext.Object);
         }
@@ -41,6 +45,7 @@ namespace GraceBot.Tests
             _mockActivities = null;
             _mockChannelAccounts = null;
             _mockConversationAccounts = null;
+            _mockUserAccounts = null;
             _mockContext = null;
             _dbManager = null;
         }
@@ -73,7 +78,7 @@ namespace GraceBot.Tests
         {
             var activity = MakeActivity();
             var data = new List<ActivityModel> { };
-            SetupMockDb_Activities(data);
+            SetupMockDbTable(_mockActivities, data);
             _mockActivities.Setup(m => m.Add(It.IsAny<ActivityModel>())).Callback<ActivityModel>(a => data.Add(a));
             
             await _dbManager.AddActivity(activity);
@@ -157,76 +162,59 @@ namespace GraceBot.Tests
         /// Tests if the Activity can be updated correctly.
         /// </summary>
         [Test]
-        public async Task UpdateActivityTest()
+        public async Task UpdateActivityProcessStatusTest()
         {
             // Setup the old record in the database
-            var oldActivity = MakeActivity();
-            var data = new List<ActivityModel> { DbManager.ConvertToModel(oldActivity, ProcessStatus.Unprocessed), };
-            SetupMockDb_Activities(data);
-
-            // change the property values of newRecord except Id and ActivityId
-            var newActivity = MakeActivity();
-            newActivity.Id = oldActivity.Id;
-            newActivity.ReplyToId = Guid.NewGuid().ToString();
-            newActivity.Type = (oldActivity.Type == ActivityTypes.Message ? ActivityTypes.Ping : ActivityTypes.Message);
+            var activity1 = MakeActivity();
+            var activity2 = MakeActivity();
+            var data = new List<ActivityModel> { DbManager.ConvertToModel(activity1, ProcessStatus.Unprocessed),
+                DbManager.ConvertToModel(activity2, ProcessStatus.BotReplied) };
+            SetupMockDbTable(_mockActivities, data);
 
             // Testing
-            await _dbManager.UpdateActivity(newActivity, ProcessStatus.Processed);
-            _mockContext.Verify(m => m.SaveChangesAsync(), Times.Once(), "Failed to save updated changes");
-
+            await _dbManager.UpdateActivityProcessStatus(activity1.Id, ProcessStatus.Processed);
+            await _dbManager.UpdateActivityProcessStatus(activity2.Id, ProcessStatus.BotMessage);
+            _mockContext.Verify(m => m.SaveChangesAsync(), Times.Exactly(2), "Failed to save updated changes");
             Assert.AreEqual(ProcessStatus.Processed, data[0].ProcessStatus);
-            AssertActivityEquality(newActivity, DbManager.ConvertToActivity(data[0]));
+            Assert.AreEqual(ProcessStatus.BotMessage, data[1].ProcessStatus);
         }
 
         /// <summary>
-        /// Tests if ArugmentNullException will be thrown when activity is null.
+        /// Tests if Exceptions will be thrown correctly.
         /// </summary>
         [Test]
-        public void UpdateActivity_ArgumentsNotNull()
+        public void UpdateActivityProcessStatus_Exceptions_Test()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(() => _dbManager.UpdateActivity(null),
+            // Tests activityId is null
+            Assert.ThrowsAsync<ArgumentNullException>(() => _dbManager.UpdateActivityProcessStatus(null, ProcessStatus.BotMessage),
                 "ArgumentNullException is not thrown properly");
-            _mockContext.Verify(m => m.SaveChangesAsync(), Times.Never(),
-                "Null should not be added to the database.");
-        }
+            _mockContext.Verify(m => m.SaveChangesAsync(), Times.Never());
 
-        /// <summary>
-        /// Tests if DataException will be thrown when there is no matching data in the database.
-        /// </summary>
-        [Test]
-        public void UpdateActivity_NoMatchingActivity_Test()
-        {
-            // Setup the old record in the database
-            var oldActivity = MakeActivity();
-            var data = new List<ActivityModel> { DbManager.ConvertToModel(oldActivity, ProcessStatus.Unprocessed), };
-            SetupMockDb_Activities(data);
-
-            var newActivity = MakeActivity();
-
-            // Testing
-            Assert.ThrowsAsync<DataException>(() => _dbManager.UpdateActivity(newActivity, ProcessStatus.Processed));
-        }
-
-        /// <summary>
-        /// Tests if <see cref="DataException"/> will be thrown when Entity Framework throws exceptions.
-        /// </summary>
-        [Test]
-        public void UpdateActivity_DataSourceFailed_Test()
-        {
+            //Tests if activityId is not found in the database
             var activity = MakeActivity();
             var data = new List<ActivityModel> { DbManager.ConvertToModel(activity, ProcessStatus.Unprocessed), };
-            SetupMockDb_Activities(data);
+            SetupMockDbTable(_mockActivities, data);
 
+            var newActivity = MakeActivity();
+
+            Assert.ThrowsAsync<DataException>(
+                () => _dbManager.UpdateActivityProcessStatus(newActivity.Id, ProcessStatus.Processed)
+                , "DataException should be thrown if the activityId cannot be found in the database.");
+
+            // Tests if updating database failed.
             _mockContext.Setup(m => m.SaveChangesAsync()).ThrowsAsync(new System.Data.Entity.Infrastructure.DbUpdateException());
-            Assert.ThrowsAsync(Is.InstanceOf<DataException>(), () => _dbManager.UpdateActivity(activity),
+            Assert.ThrowsAsync(Is.InstanceOf<DataException>(), 
+                () => _dbManager.UpdateActivityProcessStatus(activity.Id, ProcessStatus.Processed), 
                 "DataException is not thrown properly");
 
             _mockContext.Setup(m => m.SaveChangesAsync()).ThrowsAsync(new System.Data.Entity.Infrastructure.DbUpdateConcurrencyException());
-            Assert.ThrowsAsync(Is.InstanceOf<DataException>(), () => _dbManager.UpdateActivity(activity),
+            Assert.ThrowsAsync(Is.InstanceOf<DataException>(), 
+                () => _dbManager.UpdateActivityProcessStatus(activity.Id, ProcessStatus.Processed), 
                 "DataException is not thrown properly");
 
             _mockContext.Setup(m => m.SaveChangesAsync()).ThrowsAsync(new System.Data.Entity.Validation.DbEntityValidationException());
-            Assert.ThrowsAsync(Is.InstanceOf<DataException>(), () => _dbManager.UpdateActivity(activity),
+            Assert.ThrowsAsync(Is.InstanceOf<DataException>(), 
+                () => _dbManager.UpdateActivityProcessStatus(activity.Id, ProcessStatus.Processed), 
                 "DataException is not thrown properly");
         }
 
@@ -238,7 +226,7 @@ namespace GraceBot.Tests
         public void FindActivityTest()
         {
             var expected = MakeActivity();
-            SetupMockDb_Activities(new List<ActivityModel>
+            SetupMockDbTable(_mockActivities, new List<ActivityModel>
             {
                 DbManager.ConvertToModel(expected),
             });
@@ -254,7 +242,7 @@ namespace GraceBot.Tests
         [Test]
         public void FindActivity_NotInDb_Test()
         {
-            SetupMockDb_Activities(new List<ActivityModel>
+            SetupMockDbTable(_mockActivities, new List<ActivityModel>
             {
                 DbManager.ConvertToModel(MakeActivity()),
             });
@@ -269,7 +257,7 @@ namespace GraceBot.Tests
         public void FindUnprocessedQuestionsTest()
         {
             var data = new List<ActivityModel>();
-            SetupMockDb_Activities(data);
+            SetupMockDbTable(_mockActivities, data);
             var questions = _dbManager.FindUnprocessedQuestions(3);
             Assert.AreEqual(0, questions.Count());
 
@@ -299,16 +287,55 @@ namespace GraceBot.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => _dbManager.FindUnprocessedQuestions(-1));
         }
 
-
-        // This method setups a mock Activities table as an IQueryable for testing.
-        private void SetupMockDb_Activities(IList<ActivityModel> activityModels = null)
+        /// <summary>
+        /// Tests if <see cref="DbManager.GetUserRole(string)"/> gets the UserRole correctly.
+        /// </summary>
+        [Test]
+        public void GetUserRoleTest()
         {
-            var ma = activityModels.AsQueryable();
-            _mockActivities.As<IQueryable<ActivityModel>>().Setup(m => m.Provider).Returns(ma.Provider);
-            _mockActivities.As<IQueryable<ActivityModel>>().Setup(m => m.Expression).Returns(ma.Expression);
-            _mockActivities.As<IQueryable<ActivityModel>>().Setup(m => m.ElementType).Returns(ma.ElementType);
-            _mockActivities.As<IQueryable<ActivityModel>>().Setup(m => m.GetEnumerator()).Returns(ma.GetEnumerator());
-            _mockActivities.Setup(m => m.Include(It.IsAny<string>())).Returns(_mockActivities.Object);
+            var ua = new UserAccount()
+            {
+                Name = "UA",
+                Role = UserRole.Ranger
+            };
+
+            var channelAccounts = new List<ChannelAccountModel> {
+                new ChannelAccountModel(new ChannelAccount()
+                {
+                    Id = "ca1",
+                    Name = "CA"
+                }, ua)
+            };
+
+            SetupMockDbTable(_mockChannelAccounts, channelAccounts);
+            Assert.AreEqual(UserRole.Ranger, _dbManager.GetUserRole(channelAccounts[0].Id));
+        }
+
+        /// <summary>
+        /// Tests if <see cref="DbManager.GetUserRole(string)"/> throws exceptions correctly.
+        /// </summary>
+        [Test]
+        public void GetUserRole_Exceptions_Test()
+        {
+            Assert.Throws<ArgumentNullException>(() => _dbManager.GetUserRole(null), 
+                "Should throw ArgumentNullException if channelAccountId is null.");
+
+            SetupMockDbTable(_mockUserAccounts);
+            Assert.Throws<DataException>(() => _dbManager.GetUserRole("ca1"),
+                "Should throw DataException if the given id is not in the database");
+        }
+
+        // This method setups a mock table as an IQueryable for testing.
+        private void SetupMockDbTable<T>(Mock<DbSet<T>> mockTable, IList<T> data = null) where T : class
+        {
+            if (data == null)
+                data = new List<T>();
+            var mockDb = data.AsQueryable();
+            mockTable.As<IQueryable<T>>().Setup(m => m.Provider).Returns(mockDb.Provider);
+            mockTable.As<IQueryable<T>>().Setup(m => m.Expression).Returns(mockDb.Expression);
+            mockTable.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(mockDb.ElementType);
+            mockTable.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(mockDb.GetEnumerator());
+            mockTable.Setup(m => m.Include(It.IsAny<string>())).Returns(mockTable.Object);
         }
 
         // This method asserts the equality of two Activities refering to the equalities of 
@@ -321,9 +348,13 @@ namespace GraceBot.Tests
             Assert.AreEqual(expected.ServiceUrl, actual.ServiceUrl);
             Assert.AreEqual(expected.Timestamp, actual.Timestamp);
             Assert.AreEqual(expected.ChannelId, actual.ChannelId);
-            Assert.AreEqual(expected.From, actual.From);
-            Assert.AreEqual(expected.Conversation, actual.Conversation);
-            Assert.AreEqual(expected.Recipient, actual.Recipient);
+            Assert.AreEqual(expected.From.Id, actual.From.Id);
+            Assert.AreEqual(expected.From.Name, actual.From.Name);
+            Assert.AreEqual(expected.Conversation.Id, actual.Conversation.Id);
+            Assert.AreEqual(expected.Conversation.IsGroup, actual.Conversation.IsGroup);
+            Assert.AreEqual(expected.Conversation.Name, actual.Conversation.Name);
+            Assert.AreEqual(expected.Recipient.Id, actual.Recipient.Id);
+            Assert.AreEqual(expected.Recipient.Name, actual.Recipient.Name);
             Assert.AreEqual(expected.ReplyToId, actual.ReplyToId);
         }
 

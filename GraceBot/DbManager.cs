@@ -41,27 +41,15 @@ namespace GraceBot
 
         }
 
-        // Implement the method defined in IDbManager interface.
-        // Update an activity in database as an asynchronous operation given the activity and its process status.
-        public async Task UpdateActivity(Activity activity, ProcessStatus? processStatus = null)
+        public async Task UpdateActivityProcessStatus(string activityId, ProcessStatus processStatus)
         {
-            if (activity == null)
+            if (activityId == null)
                 throw new ArgumentNullException("activity cannot be null.");
-            var oldRecord = _db.Activities.SingleOrDefault(o => o.ActivityId.Equals(activity.Id));            
+            var oldRecord = _db.Activities.Include(r => r.From).Include(r => r.Recipient)
+                .Include(r => r.Conversation).SingleOrDefault(o => o.ActivityId.Equals(activityId));            
             if(oldRecord != null)
             {
-                oldRecord.ActivityId = activity.Id;
-                oldRecord.Text = activity.Text;
-                oldRecord.Type = activity.Type;
-                oldRecord.ServiceUrl = activity.ServiceUrl;
-                oldRecord.Timestamp = activity.Timestamp;
-                oldRecord.ChannelId = activity.ChannelId;
-                oldRecord.From = activity.From;
-                oldRecord.Conversation = activity.Conversation;
-                oldRecord.Recipient = activity.Recipient;
-                oldRecord.ReplyToId = activity.ReplyToId;
-
-                oldRecord.ProcessStatus = processStatus ?? oldRecord.ProcessStatus;
+                oldRecord.ProcessStatus = processStatus;
                 AttachReference(oldRecord);
                 await _db.SaveChangesAsync();
             }
@@ -94,11 +82,18 @@ namespace GraceBot
 
             if (activityModel.Conversation != null)
             {
-                var conversationAccount = _db.ConversationAccounts.Find(activityModel.Conversation.Id);
-                if (conversationAccount != null)
+                try
                 {
-                    _db.ConversationAccounts.Attach(conversationAccount);
-                    activityModel.Conversation = conversationAccount;
+                    var conversationAccount = _db.ConversationAccounts.Find(activityModel.Conversation.Id);
+                    if (conversationAccount != null)
+                    {
+                        _db.ConversationAccounts.Attach(conversationAccount);
+                        activityModel.Conversation = conversationAccount;
+                    }
+                }
+                catch(Exception ex)
+                {
+                    var s = ex.Message;
                 }
             }
         }
@@ -130,6 +125,10 @@ namespace GraceBot
             return ConvertToActivity(activityRecord);
         }
 
+        public UserRole GetUserRole(string channelAccountId)
+        {
+            return UserRole.Ranger;
+        }
 
         // Return an activityModel given an activity and its process status.
         internal static ActivityModel ConvertToModel(Activity activity, ProcessStatus? processStatus = null)
@@ -140,10 +139,28 @@ namespace GraceBot
             return model;
         }
 
-
         // Return an activity given an activityModel.
         internal static Activity ConvertToActivity(ActivityModel activityModel)
         {
+            var from = new ChannelAccount()
+            {
+                Id = activityModel.From.Id,
+                Name = activityModel.From.Name
+            };
+
+            var recipient = new ChannelAccount()
+            {
+                Id = activityModel.Recipient.Id,
+                Name = activityModel.Recipient.Name
+            };
+
+            var conversation = new ConversationAccount()
+            {
+                Id = activityModel.Conversation.Id,
+                IsGroup = activityModel.Conversation.IsGroup,
+                Name = activityModel.Conversation.Name
+            };
+
             return new Activity()
             {
                 Id = activityModel.ActivityId,
@@ -152,9 +169,9 @@ namespace GraceBot
                 ServiceUrl = activityModel.ServiceUrl,
                 Timestamp = activityModel.Timestamp,
                 ChannelId = activityModel.ChannelId,
-                From = activityModel.From,
-                Conversation = activityModel.Conversation,
-                Recipient = activityModel.Recipient,
+                From = from,
+                Conversation = conversation,
+                Recipient = recipient,
                 ReplyToId = activityModel.ReplyToId
             };
         }

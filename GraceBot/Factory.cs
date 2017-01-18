@@ -71,7 +71,6 @@ namespace GraceBot
             using (var reader =
                 new JsonTextReader(
                 new StreamReader(AppDomain.CurrentDomain.BaseDirectory + $"{sep}Words{sep}dictionary.json"))
-
             )
             {
                 var definitions = new JsonSerializer().Deserialize<Dictionary<string, string>>(reader);
@@ -88,6 +87,5 @@ namespace GraceBot
         {
             return new BotManager();
         }
-
     }
 }

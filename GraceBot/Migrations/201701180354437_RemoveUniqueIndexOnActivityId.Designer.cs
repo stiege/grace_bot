@@ -7,18 +7,18 @@ namespace GraceBot.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class AddUnqiueIndexForActivityId : IMigrationMetadata
+    public sealed partial class RemoveUniqueIndexOnActivityId : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddUnqiueIndexForActivityId));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(RemoveUniqueIndexOnActivityId));
         
         string IMigrationMetadata.Id
         {
-            get { return "201701170219384_AddUnqiueIndexForActivityId"; }
+            get { return "201701180354437_RemoveUniqueIndexOnActivityId"; }
         }
         
         string IMigrationMetadata.Source
         {
-            get { return Resources.GetString("Source"); }
+            get { return null; }
         }
         
         string IMigrationMetadata.Target
