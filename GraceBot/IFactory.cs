@@ -20,5 +20,6 @@ namespace GraceBot
         ISlackManager GetSlackManager();
 
         IBotManager GetBotManager();
+        ICommandManager GetCommandManager();
     }
 }

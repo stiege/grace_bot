@@ -180,9 +180,13 @@
     <Compile Include="App.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="BotManager.cs" />
+    <Compile Include="Command.cs" />
+    <Compile Include="CommandManager.cs" />
     <Compile Include="DbManager.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="IBotManager.cs" />
+    <Compile Include="ICommand.cs" />
+    <Compile Include="ICommandManager.cs" />
     <Compile Include="ILuisManager.cs" />
     <Compile Include="ISlackManager.cs" />
     <Compile Include="LuisManager.cs" />
