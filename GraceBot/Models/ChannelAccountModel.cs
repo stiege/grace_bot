@@ -7,7 +7,7 @@ using System.Web;
 
 namespace GraceBot.Models
 {
-    public class ChannelAccountModel
+    public class ChannelAccountModel : IEFModel
     {
         private ChannelAccount _channelAccount;
 

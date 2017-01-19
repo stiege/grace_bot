@@ -7,7 +7,7 @@ using System.Web;
 
 namespace GraceBot.Models
 {
-    public class UserAccount
+    public class UserAccount : IEFModel
     {
         public UserAccount()
         {

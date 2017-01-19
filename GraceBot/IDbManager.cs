@@ -39,7 +39,7 @@ namespace GraceBot
         /// <param name="processStatus">The process status of the activity.</param>
         /// 
         /// <exception cref="System.ArgumentNullException">Thrown when activityId is null. </exception>
-        /// <exception cref="System.Data.DataException">Thrown when no matching
+        /// <exception cref="System.Data.RowNotInTableException">Thrown when no matching
         /// Activity can be updated. </exception>
         /// <exception cref="System.Data.DataException">Thrown when updating activity
         /// failed due to data source.</exception> 
@@ -73,7 +73,7 @@ namespace GraceBot
         /// <param name="channelAccountId">The id of the user's ChannelAccount</param>
         /// 
         /// <exception cref="System.ArgumentNullException">Thrown when channelAccountId is null.</exception>
-        /// <exception cref="System.Data.DataException">Thrown when the given id is not in the database.</exception>
+        /// <exception cref="System.Data.RowNotInTableException">Thrown when the given id is not in the database.</exception>
         /// 
         /// <returns></returns>
         UserRole GetUserRole(string channelAccountId);

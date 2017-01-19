@@ -197,7 +197,7 @@ namespace GraceBot.Tests
 
             var newActivity = MakeActivity();
 
-            Assert.ThrowsAsync<DataException>(
+            Assert.ThrowsAsync<RowNotInTableException>(
                 () => _dbManager.UpdateActivityProcessStatus(newActivity.Id, ProcessStatus.Processed)
                 , "DataException should be thrown if the activityId cannot be found in the database.");
 
@@ -298,16 +298,19 @@ namespace GraceBot.Tests
                 Name = "UA",
                 Role = UserRole.Ranger
             };
+            var userAccounts = new List<UserAccount> { ua };
 
+            var ca = new ChannelAccount()
+            {
+                Id = "ca1",
+                Name = "CA"
+            };
             var channelAccounts = new List<ChannelAccountModel> {
-                new ChannelAccountModel(new ChannelAccount()
-                {
-                    Id = "ca1",
-                    Name = "CA"
-                }, ua)
+                new ChannelAccountModel(ca, ua)
             };
 
             SetupMockDbTable(_mockChannelAccounts, channelAccounts);
+            SetupMockDbTable(_mockUserAccounts, userAccounts);
             Assert.AreEqual(UserRole.Ranger, _dbManager.GetUserRole(channelAccounts[0].Id));
         }
 
@@ -321,12 +324,12 @@ namespace GraceBot.Tests
                 "Should throw ArgumentNullException if channelAccountId is null.");
 
             SetupMockDbTable(_mockUserAccounts);
-            Assert.Throws<DataException>(() => _dbManager.GetUserRole("ca1"),
+            Assert.Throws<RowNotInTableException>(() => _dbManager.GetUserRole("ca1"),
                 "Should throw DataException if the given id is not in the database");
         }
 
         // This method setups a mock table as an IQueryable for testing.
-        private void SetupMockDbTable<T>(Mock<DbSet<T>> mockTable, IList<T> data = null) where T : class
+        private void SetupMockDbTable<T>(Mock<DbSet<T>> mockTable, IList<T> data = null) where T : class, IEFModel
         {
             if (data == null)
                 data = new List<T>();
@@ -335,6 +338,8 @@ namespace GraceBot.Tests
             mockTable.As<IQueryable<T>>().Setup(m => m.Expression).Returns(mockDb.Expression);
             mockTable.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(mockDb.ElementType);
             mockTable.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(mockDb.GetEnumerator());
+            mockTable.As<IDbSet<T>>().Setup(m => m.Find(It.IsAny<string>())).
+                Returns((object[] id) => data.SingleOrDefault(o => o.Id == (string) id[0]));
             mockTable.Setup(m => m.Include(It.IsAny<string>())).Returns(mockTable.Object);
         }
 

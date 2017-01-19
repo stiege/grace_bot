@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GraceBot.Models
 {
-    public class ActivityModel
+    public class ActivityModel : IEFModel
     {
         private Activity _activity;
 

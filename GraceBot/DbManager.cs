@@ -52,7 +52,7 @@ namespace GraceBot
                 AttachReference(oldRecord);
                 await _db.SaveChangesAsync();
             }
-            else throw new DataException("No matching Activity record is found.");
+            else throw new RowNotInTableException("No matching Activity record is found.");
         }
 
 
@@ -126,7 +126,15 @@ namespace GraceBot
 
         public UserRole GetUserRole(string channelAccountId)
         {
-            return UserRole.Ranger;
+            if (channelAccountId == null)
+                throw new ArgumentNullException("channelAccountId cannot be null.");
+
+            var channelAccount = _db.ChannelAccounts.Find(channelAccountId);
+            if (channelAccount == null)
+                throw new RowNotInTableException("ChannelAccount is not found.");
+            if (channelAccount.UserAccount == null)
+                throw new RowNotInTableException("This ChannelAccount does not belong to any UserAccount");
+            return channelAccount.UserAccount.Role;
         }
 
         // Return an activityModel given an activity and its process status.

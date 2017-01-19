@@ -7,7 +7,7 @@ using System.Web;
 
 namespace GraceBot.Models
 {
-    public class ConversationAccountModel
+    public class ConversationAccountModel : IEFModel
     {
         private ConversationAccount _conversationAccount;
 
