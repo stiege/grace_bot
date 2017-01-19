@@ -19,8 +19,10 @@ namespace GraceBot
         private readonly ILuisManager _luisManager;
         private readonly ISlackManager _slackManager;
         private readonly IBotManager _botManager;
+        private readonly ICommandManager _commandManager;
 
         private Activity _activity;
+        private UserRole _userRole;
 
         #endregion
 
@@ -35,6 +37,8 @@ namespace GraceBot
             _luisManager = _factory.GetLuisManager();
             _slackManager = _factory.GetSlackManager();
             _botManager = _factory.GetBotManager();
+            _commandManager = _factory.GetCommandManager();
+            _userRole = UserRole.User;
         }
 
         #region Methods
@@ -44,6 +48,9 @@ namespace GraceBot
         {
             // Set field activity to argument activity 
             _activity = activity;
+
+            // Get user role
+            _userRole = _dbManager.GetUserRole(_activity.From.Id);
 
             // Check activity type, if not message, handle system message
             var isMessageType = _activity.Type != ActivityTypes.Message;
@@ -63,34 +70,29 @@ namespace GraceBot
 
             // Filter activity text
             var isPassedFilter = await _filter.FilterAsync(_activity);
-            if (isPassedFilter)
-            {
-                // Respond to triggering words
-                switch (_activity.Text.Split(' ')[0])
-                {
-                    case "/get":
-                        {
-                            // Get unprocessed questions
-                            await RetrieveQuestionsAsync();
-                            break;
-                        }
-                    case "/replyActivity":
-                        {
-                            // Reply to a certain activity 
-                            await ReplyToQuestionsAsync();
-                            break;
-                        }
-                    default:
-                        {
-                            await ProcessActivityAsync();
-                            break;
-                        }
-                }
-            }
-            else
+            if (!isPassedFilter)
             {
                 await _botManager.ReplyToActivityAsync("Sorry, bad words detected, please try again.", _activity);
+                return;
             }
+
+            // Respond to triggering words
+            switch (_activity.Text.Split(' ')[0].Substring(0, 1))
+            {
+                case "/":
+                    {
+                        // Execute Command 
+                        var cmd = _activity.Text.Split(' ')[0];
+                        await _commandManager.GetCommand(cmd, _userRole).Execute(_activity);
+                        break;
+                    }
+                default:
+                    {
+                        await ProcessActivityAsync();
+                        break;
+                    }
+            }
+
         }
 
 
@@ -105,23 +107,24 @@ namespace GraceBot
             var response = await _luisManager.GetResponse(_activity.Text);
 
             // Check Luis response
-            if (response != null)
-            {
-                switch (response.topScoringIntent.intent)
-                {
-                    case "GetDefinition":
-                        {
-                            await ReplyDefinition(response);
-                            break;
-                        }
+            if (response == null)
+                return;
 
-                    default:
-                        {
-                            await SlackForwardAsync(_activity.Text);
-                            break;
-                        }
-                }
+            switch (response.topScoringIntent.intent)
+            {
+                case "GetDefinition":
+                    {
+                        await ReplyDefinition(response);
+                        break;
+                    }
+
+                default:
+                    {
+                        await SlackForwardAsync(_activity.Text);
+                        break;
+                    }
             }
+
         }
 
         private async Task ReplyDefinition(LuisResponse response)
@@ -158,53 +161,6 @@ namespace GraceBot
             //    await _factory.GetDbManager().AddActivity(replyActivity);
             //}
             //await _factory.GetDbManager().UpdateActivity(_activity, ProcessStatus.BotReplied);
-        }
-
-        // Retrive unprocessed questions and display them in card view as an asynchronous operation.
-        private async Task RetrieveQuestionsAsync()
-        {
-            // Get all unprocessd activities from database
-            var unprocessedActivities = _dbManager.FindUnprocessedQuestions(5);
-
-            // Create reply activity          
-            if (unprocessedActivities.Any())
-            {
-                var attachments = _botManager.GenerateQuestionsAttachments(unprocessedActivities);
-                await _botManager.ReplyToActivityAsync("Unprocessed Questions:", _activity, attachments);
-            }
-            else
-            {
-                await _botManager.ReplyToActivityAsync("No Unprocessed Questions Found.", _activity);
-            }
-
-        }
-
-
-
-        // Save user state data of a question clicked to reply, and notify which question is being answered
-        // as an asynchronous operation.
-        private async Task ReplyToQuestionsAsync()
-        {
-            // Get question activity from database
-            var questionActivity = _dbManager.FindActivity(_activity.Text.Split(' ')[1]);
-
-            if (questionActivity == null)
-            {
-                //do something to handle
-            }
-
-            // Set this activity is a replying activity and the question id
-            await _botManager.SetUserDataPropertyAsync("replying", true, _activity);
-            await _botManager.SetUserDataPropertyAsync("replyingToQuestionID", questionActivity.Id, _activity);
-
-            // Return text
-            var markdown = $"You are answering ***{questionActivity.From.Name}***'s question:\n";
-            markdown += "***\n";
-            markdown += $"{questionActivity.Text}\n";
-            markdown += "***\n";
-            markdown += "**Please give your answer in the next replyActivity.**\n";
-
-            await _botManager.ReplyToActivityAsync(markdown, _activity);
         }
 
 

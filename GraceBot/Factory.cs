@@ -14,6 +14,11 @@ namespace GraceBot
     {
         private static IFactory _factoryInstance;
         private static IApp _appInstance;
+        private static ILuisManager _luisManagerInstance;
+        private static ISlackManager _slackManagerInstance;
+        private static IDbManager _dbManagerInstance;
+        private static IBotManager _botManagerInstance;
+        private static ICommandManager _commandManagerInstance;
 
         // disable default constructor
         private Factory()
@@ -25,23 +30,42 @@ namespace GraceBot
             _factoryInstance = _factoryInstance ?? new Factory();
             return _factoryInstance;
         }
+        public IApp GetApp()
+        {
+            _appInstance = _appInstance ?? new App(GetFactory());
+            return _appInstance;
+        }
 
         // Return a new 
         public ILuisManager GetLuisManager()
         {
-            return new LuisManager();
+            _luisManagerInstance= _luisManagerInstance??new LuisManager();
+            return _luisManagerInstance;
         }
 
         // Return a new 
         public ISlackManager GetSlackManager()
         {
-            return new SlackManager();
+            _slackManagerInstance= _slackManagerInstance?? new SlackManager();
+            return _slackManagerInstance;
         }
 
-        public IApp GetApp()
+        public IDbManager GetDbManager()
         {
-            _appInstance = _appInstance ?? new App(GetFactory());
-            return _appInstance;
+            _dbManagerInstance= _dbManagerInstance??new DbManager(new Models.GraceBotContext());
+            return _dbManagerInstance;
+        }
+
+        public IBotManager GetBotManager()
+        {
+            _botManagerInstance= _botManagerInstance??new BotManager();
+            return _botManagerInstance;
+        }
+
+        public ICommandManager GetCommandManager()
+        {
+            _commandManagerInstance = _commandManagerInstance ?? new CommandManager();
+            return _commandManagerInstance;
         }
 
         public IFilter GetActivityFilter()
@@ -63,14 +87,5 @@ namespace GraceBot
             }
         }
 
-        public IDbManager GetDbManager()
-        {
-            return new DbManager(new Models.GraceBotContext());
-        }
-
-        public IBotManager GetBotManager()
-        {
-            return new BotManager();
-        }
     }
 }
