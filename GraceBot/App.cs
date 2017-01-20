@@ -84,9 +84,9 @@ namespace GraceBot
             }
 
             // Respond to triggering words
-            switch (_activity.Text.Split(' ')[0].Substring(0, 1))
+            switch (_activity.Text.Split(' ')[0].Substring(0, CommandString.CMD_PREFIX.Length))
             {
-                case "/":
+                case CommandString.CMD_PREFIX:
                     {
                         // Execute Command 
                         var cmd = _activity.Text.Split(' ')[0];

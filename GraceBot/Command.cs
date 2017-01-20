@@ -7,7 +7,6 @@ using Microsoft.Bot.Connector;
 
 namespace GraceBot
 {
-
         internal class CommandGetQuestion:ICommand
         {
             private IFactory _factory;
@@ -71,7 +70,7 @@ namespace GraceBot
             markdown += "***\n";
             markdown += $"{questionActivity.Text}\n";
             markdown += "***\n";
-            markdown += "**Please give your answer in the next replyActivity.**\n";
+            markdown += "**Please give your answer in the next message.**\n";
 
             await _botManager.ReplyToActivityAsync(markdown, activity);
         }

@@ -307,6 +307,9 @@ namespace GraceBot.Tests
             };
             var channelAccounts = new List<ChannelAccountModel> {
                 new ChannelAccountModel(ca, ua)
+                {
+                    UserAccountId = ua.Id
+                }
             };
 
             SetupMockDbTable(_mockChannelAccounts, channelAccounts);

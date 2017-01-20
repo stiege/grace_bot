@@ -33,7 +33,7 @@ namespace GraceBot
                 {
                     Title = "Answer this question",
                     Type = "postBack",
-                    Value = $"/replyActivity {ua.Id}"
+                    Value = $"{CommandString.REPLYING_TO_QUESTION} {ua.Id}"
                 });
 
                 var card = new HeroCard()

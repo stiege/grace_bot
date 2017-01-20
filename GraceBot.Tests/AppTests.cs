@@ -183,7 +183,7 @@ namespace GraceBot.Tests
         [Test]
         public async Task ReplyToQuestionsTest()
         {
-            _activity.Text = "/replyActivity 1234";
+            _activity.Text = $"{CommandString.REPLYING_TO_QUESTION} 1234";
             _activity.Type = ActivityTypes.Message;
 
             var questionActivity=new Activity()
@@ -200,7 +200,7 @@ namespace GraceBot.Tests
             expectedResult += "***\n";
             expectedResult += $"{questionActivity.Text}\n";
             expectedResult += "***\n";
-            expectedResult += "**Please give your answer in the next replyActivity.**\n";
+            expectedResult += "**Please give your answer in the next message.**\n";
 
             var mFactory = new Mock<IFactory>();
             mFactory.Setup(o => o.GetDbManager().FindActivity(It.IsAny<string>()))

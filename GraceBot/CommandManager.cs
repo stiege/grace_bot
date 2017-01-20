@@ -10,8 +10,8 @@ namespace GraceBot
     {
         internal  Dictionary<string, ICommand> Commands { get; } = new Dictionary<string, ICommand>(StringComparer.OrdinalIgnoreCase)
         {
-            {"/get",new CommandGetQuestion()},
-            {"/replyActivity",new CommandReplyQuestion() }
+            { CommandString.GET_UNPROCESSED_QUESTIONS, new CommandGetQuestion() },
+            { CommandString.REPLYING_TO_QUESTION, new CommandReplyQuestion() }
         };
 
         public  ICommand GetCommand(string cmd,UserRole userRole)

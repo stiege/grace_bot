@@ -229,6 +229,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="Properties\PublishProfiles\GraceBot20161125125146 - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\gracebottestfield - Web Deploy.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

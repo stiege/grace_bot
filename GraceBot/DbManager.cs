@@ -104,11 +104,13 @@ namespace GraceBot
         {
             if (amount < 1)
                 throw new ArgumentOutOfRangeException("amount cannot be less than 1.");
-            var extendedActivities = _db.Activities.Include(r => r.From).Include(r => r.Recipient).Include(r => r.Conversation).Where(o => o.ProcessStatus == ProcessStatus.Unprocessed).Take(amount).ToList();
+            var activityModel = _db.Activities.Include(r => r.From).Include(r => r.Recipient)
+                .Include(r => r.Conversation).Where(o => o.ProcessStatus == ProcessStatus.Unprocessed)
+                .Take(amount).ToList();
             var activities = new List<Activity>();
-            foreach (var ea in extendedActivities)
+            foreach (var am in activityModel)
             {
-                activities.Add(ConvertToActivity(ea));
+                activities.Add(ConvertToActivity(am));
             }
             return activities;
         }
