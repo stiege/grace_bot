@@ -6,6 +6,7 @@ using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Data;
 
 namespace GraceBot
 {
@@ -50,7 +51,13 @@ namespace GraceBot
             _activity = activity;
 
             // Get user role
-            _userRole = _dbManager.GetUserRole(_activity.From.Id);
+            try
+            {
+                _userRole = _dbManager.GetUserRole(_activity.From.Id);
+            } catch (RowNotInTableException ex)
+            {
+                _userRole = UserRole.User;
+            }
 
             // Check activity type, if not message, handle system message
             var isMessageType = _activity.Type != ActivityTypes.Message;

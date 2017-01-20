@@ -132,9 +132,13 @@ namespace GraceBot
             var channelAccount = _db.ChannelAccounts.Find(channelAccountId);
             if (channelAccount == null)
                 throw new RowNotInTableException("ChannelAccount is not found.");
-            if (channelAccount.UserAccount == null)
+            if (channelAccount.UserAccountId == null)
                 throw new RowNotInTableException("This ChannelAccount does not belong to any UserAccount");
-            return channelAccount.UserAccount.Role;
+            var userAccount = _db.UserAccounts.Find(channelAccount.UserAccountId);
+            if (userAccount == null)
+                throw new RowNotInTableException(
+                    $"The UserAccount (Id: {channelAccount.UserAccountId}) is not in database, referential integrity might be broken.");
+            return userAccount.Role;
         }
 
         // Return an activityModel given an activity and its process status.
