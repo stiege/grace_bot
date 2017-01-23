@@ -6,15 +6,30 @@ using GraceBot.Models;
 
 namespace GraceBot
 {
-    internal class CommandManager:ICommandManager
+    internal class CommandManager : ICommandManager
     {
-        internal  Dictionary<string, ICommand> Commands { get; } = new Dictionary<string, ICommand>(StringComparer.OrdinalIgnoreCase)
-        {
-            { CommandString.GET_UNPROCESSED_QUESTIONS, new CommandGetQuestion() },
-            { CommandString.REPLYING_TO_QUESTION, new CommandReplyQuestion() }
-        };
+        private IFactory _factory;
+        private Dictionary<string, ICommand> _commandsList;
 
-        public  ICommand GetCommand(string cmd,UserRole userRole)
+        internal Dictionary<string, ICommand> Commands
+        {
+            get
+            {
+                return _commandsList;
+            }
+        }
+
+        public CommandManager(IFactory factory)
+        {
+            _factory = factory;
+            _commandsList = new Dictionary<string, ICommand>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { CommandString.GET_UNPROCESSED_QUESTIONS, new CommandGetQuestion(_factory) },
+                    { CommandString.REPLYING_TO_QUESTION, new CommandReplyQuestion(_factory) }
+                };
+        }
+
+        public ICommand GetCommand(string cmd, UserRole userRole)
         {
             if (userRole.Equals(UserRole.Ranger))
             {

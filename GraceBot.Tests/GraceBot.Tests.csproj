@@ -118,6 +118,7 @@
     <Compile Include="ActivityFilterTests.cs" />
     <Compile Include="ActivityDefinitionTests.cs" />
     <Compile Include="AppTests.cs" />
+    <Compile Include="CommandTests.cs" />
     <Compile Include="DbManagerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

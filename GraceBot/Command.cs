@@ -13,9 +13,9 @@ namespace GraceBot
             private IBotManager _botManager;
             private IDbManager _dbManager;
 
-            public CommandGetQuestion()
+            public CommandGetQuestion(IFactory factory)
             {
-                _factory = Factory.GetFactory();
+                _factory = factory;
                 _botManager = _factory.GetBotManager();
                 _dbManager = _factory.GetDbManager();
             }
@@ -44,9 +44,10 @@ namespace GraceBot
         private IFactory _factory;
         private readonly IBotManager _botManager;
         private readonly IDbManager _dbManager;
-        public CommandReplyQuestion()
+
+        public CommandReplyQuestion(IFactory factory)
         {
-            _factory = Factory.GetFactory(); ;
+            _factory = factory;
             _botManager = _factory.GetBotManager();
             _dbManager = _factory.GetDbManager();
         }

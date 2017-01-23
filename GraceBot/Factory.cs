@@ -64,7 +64,7 @@ namespace GraceBot
 
         public ICommandManager GetCommandManager()
         {
-            _commandManagerInstance = _commandManagerInstance ?? new CommandManager();
+            _commandManagerInstance = _commandManagerInstance ?? new CommandManager(GetFactory());
             return _commandManagerInstance;
         }
 
