@@ -38,7 +38,7 @@ namespace GraceBot
             }
             else
             {
-                // TO DO ....
+                //TODO: handle when the user is not a ranger. 
                 return null;
             }
         }

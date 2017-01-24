@@ -17,8 +17,6 @@ namespace GraceBot
             {
                 replyAcitivty.Attachments = attachments;
             }
-            //replyAcitivty.Recipient = originalAcitivty.From;
-            //replyAcitivty.Type = ActivityTypes.Message;
             await connector.Conversations.ReplyToActivityAsync(replyAcitivty);
             return replyAcitivty;
         }

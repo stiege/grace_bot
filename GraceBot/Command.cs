@@ -41,40 +41,40 @@ namespace GraceBot
 
         internal class CommandReplyQuestion : ICommand
         {
-        private IFactory _factory;
-        private readonly IBotManager _botManager;
-        private readonly IDbManager _dbManager;
+            private IFactory _factory;
+            private readonly IBotManager _botManager;
+            private readonly IDbManager _dbManager;
 
-        public CommandReplyQuestion(IFactory factory)
-        {
-            _factory = factory;
-            _botManager = _factory.GetBotManager();
-            _dbManager = _factory.GetDbManager();
-        }
-
-        public async Task Execute(Activity activity)
+            public CommandReplyQuestion(IFactory factory)
             {
-            // Get question activity from database
-            var questionActivity = _dbManager.FindActivity(activity.Text.Split(' ')[1]);
-
-            if (questionActivity == null)
-            {
-                //do something to handle
+                _factory = factory;
+                _botManager = _factory.GetBotManager();
+                _dbManager = _factory.GetDbManager();
             }
 
-            // Set this activity is a replying activity and the question id
-            await _botManager.SetUserDataPropertyAsync("replying", true, activity);
-            await _botManager.SetUserDataPropertyAsync("replyingToQuestionID", questionActivity.Id, activity);
+            public async Task Execute(Activity activity)
+            {
+                // Get question activity from database
+                var questionActivity = _dbManager.FindActivity(activity.Text.Split(' ')[1]);
 
-            // Return text
-            var markdown = $"You are answering ***{questionActivity.From.Name}***'s question:\n";
-            markdown += "***\n";
-            markdown += $"{questionActivity.Text}\n";
-            markdown += "***\n";
-            markdown += "**Please give your answer in the next message.**\n";
+                if (questionActivity == null)
+                {
+                    //TODO: do something to handle when the questionActivity is null.
+                }
 
-            await _botManager.ReplyToActivityAsync(markdown, activity);
-        }
+                // Set this activity is a replying activity and the question id
+                await _botManager.SetUserDataPropertyAsync("replying", true, activity);
+                await _botManager.SetUserDataPropertyAsync("replyingToQuestionID", questionActivity.Id, activity);
+
+                // Return text
+                var markdown = $"You are answering ***{questionActivity.From.Name}***'s question:\n";
+                markdown += "***\n";
+                markdown += $"{questionActivity.Text}\n";
+                markdown += "***\n";
+                markdown += "**Please give your answer in the next message.**\n";
+
+                await _botManager.ReplyToActivityAsync(markdown, activity);
+            }
         }
 
     }

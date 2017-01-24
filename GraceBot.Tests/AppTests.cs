@@ -20,6 +20,12 @@ namespace GraceBot.Tests
             _factory = new Mock<IFactory>();
         }
 
+        [TearDown]
+        public void ResetActivity()
+        {
+            _activity = null;
+        }
+
         /// <summary>
         /// Test known bad words get a response of "...".
         /// </summary>
@@ -131,18 +137,5 @@ namespace GraceBot.Tests
 
             mFactory.Verify(f => f.GetBotManager().ReplyToActivityAsync(expectedReply, _activity,null));
         }
-
-        
-
-        
-
-
-
-        [TearDown]
-        public void ResetActivity()
-        {
-            _activity = null;
-        }
     }
-
 }

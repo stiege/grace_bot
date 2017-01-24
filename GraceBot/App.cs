@@ -157,17 +157,6 @@ namespace GraceBot
                 await _dbManager.AddActivity(replyActivity);
                 await _dbManager.UpdateActivityProcessStatus(_activity.Id, ProcessStatus.BotReplied);
             }
-
-
-            //foreach (var responseEntity in response.entities.Where(e => e.type == "subject"))
-            //{
-            //    var result = _definition.FindDefinition(responseEntity.entity);
-            //    if (result == null) goto default;
-            //    var replyActivity = await _botManager.ReplyToActivityAsync(result, _activity);
-
-            //    await _factory.GetDbManager().AddActivity(replyActivity);
-            //}
-            //await _factory.GetDbManager().UpdateActivity(_activity, ProcessStatus.BotReplied);
         }
 
 
