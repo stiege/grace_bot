@@ -13,7 +13,7 @@ namespace GraceBot
         ISlackManager GetSlackManager();
         IBotManager GetBotManager();
         ICommandManager GetCommandManager();
-        IDialog<T> GetGraceDialog<T>(string dialogName);
+        GraceDialog<T> GetGraceDialog<T>(string dialogName);
         Dictionary<string, List<string>> GetResponseData(string contextOrDialogName);
     }
 }

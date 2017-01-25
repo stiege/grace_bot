@@ -1,18 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Bot.Builder.Dialogs;
+﻿using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Threading.Tasks;
 
 namespace GraceBot.Dialogs
 {
-    internal class HomeDialog : GraceDialog<object>
+    internal class GetDefinitionDialog : GraceDialog<IMessageActivity>
     {
         private Dictionary<string, List<string>> _responses;
 
-        public const string NAME = "Home";
+        public const string NAME = "GetDefinition";
 
-        public HomeDialog(IFactory factory, params object[] dialogVariables) : base(factory, dialogVariables)
+        public GetDefinitionDialog(IFactory factory, params object[] dialogVariables) : base(factory, dialogVariables)
         {
             _responses = _factory.GetResponseData(NAME);
         }
@@ -26,7 +28,6 @@ namespace GraceBot.Dialogs
         {
             throw new NotImplementedException();
         }
-
 
     }
 }

@@ -46,7 +46,7 @@ namespace GraceBot
             _botManager = _factory.GetBotManager();
             _commandManager = _factory.GetCommandManager();
             _userRole = UserRole.User;
-            _rootDialog = _factory.GetGraceDialog<object>(HomeDialog.Name);
+            _rootDialog = _factory.GetGraceDialog<object>(HomeDialog.NAME);
         }
 
         #region Methods

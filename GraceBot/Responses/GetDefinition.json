@@ -1,0 +1,16 @@
+{
+	"CannotFindDefinition_ForSubject":
+	[
+		"Sorry, we currently don't have knowledge about **{subject}**. ",
+	],
+
+	"QuestionSubmitted_Single":
+	[
+		"Your question has been sent to OMGTech! team, we will get back to you ASAP."
+	],
+
+	"QuestionSubmitted_Multiple":
+	[
+		"Your questions have been sent to OMGTech! team, we will get back to you ASAP."
+	],
+}

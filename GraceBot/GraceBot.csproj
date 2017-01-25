@@ -184,11 +184,13 @@
     <Compile Include="CommandManager.cs" />
     <Compile Include="DbManager.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
+    <Compile Include="Dialogs\GetDefinitionDialog.cs" />
     <Compile Include="Dialogs\HomeDialog.cs" />
     <Compile Include="IBotManager.cs" />
     <Compile Include="IEFModels.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="ICommandManager.cs" />
+    <Compile Include="Dialogs\GraceDialog.cs" />
     <Compile Include="ILuisManager.cs" />
     <Compile Include="ISlackManager.cs" />
     <Compile Include="LuisManager.cs" />

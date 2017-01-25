@@ -85,15 +85,15 @@ namespace GraceBot
             }
         }
 
-        public IDialog<T> GetGraceDialog<T>(string dialogName)
+        public GraceDialog<T> GetGraceDialog<T>(string dialogName)
         {
             if (_dialogs == null)
                 InitialDialog();
             object dialog = null;
             if (_dialogs.TryGetValue(dialogName, out dialog))
             {
-                if (dialog is IDialog<T>)
-                    return (IDialog<T>)dialog;
+                if (dialog is GraceDialog<T>)
+                    return (GraceDialog<T>)dialog;
             }
             return null;
         }
@@ -106,7 +106,8 @@ namespace GraceBot
         private void InitialDialog()
         {
             _dialogs = new Dictionary<string, object>();
-            _dialogs.Add(HomeDialog.Name, new HomeDialog(this));
+            _dialogs.Add(HomeDialog.NAME, new HomeDialog(this));
+            _dialogs.Add(GetDefinitionDialog.NAME, new GetDefinitionDialog(this));
         }
     }
 }
