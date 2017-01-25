@@ -1,0 +1,13 @@
+{
+	"Greeting":
+	[
+		"Welcome!",
+		"Hello"
+	],
+
+	"Farewell":
+	[
+		"Goodbye!",
+		"Until next time :)"
+	]
+}

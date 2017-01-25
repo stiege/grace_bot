@@ -1,25 +1,19 @@
-﻿using Microsoft.Bot.Connector;
-using System;
-using System.Threading.Tasks;
+﻿using Microsoft.Bot.Builder.Dialogs;
+using System.Collections.Generic;
 
 namespace GraceBot
 {
     internal interface IFactory
     {   
-
         IApp GetApp();
-
         IDefinition GetActivityDefinition();
-
         IFilter GetActivityFilter();
-
         IDbManager GetDbManager();
-
         ILuisManager GetLuisManager();
-
         ISlackManager GetSlackManager();
-
         IBotManager GetBotManager();
         ICommandManager GetCommandManager();
+        IDialog<T> GetGraceDialog<T>(string dialogName);
+        Dictionary<string, List<string>> GetResponseData(string contextOrDialogName);
     }
 }

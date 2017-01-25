@@ -1,12 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Data.Entity.Infrastructure;
-using System.Data.Entity;
+using GraceBot.Dialogs;
+using Microsoft.Bot.Builder.Dialogs;
 
 namespace GraceBot
 {
@@ -19,6 +16,7 @@ namespace GraceBot
         private static IDbManager _dbManagerInstance;
         private static IBotManager _botManagerInstance;
         private static ICommandManager _commandManagerInstance;
+        private static Dictionary<string, object> _dialogs;
 
         // disable default constructor
         private Factory()
@@ -87,5 +85,28 @@ namespace GraceBot
             }
         }
 
+        public IDialog<T> GetGraceDialog<T>(string dialogName)
+        {
+            if (_dialogs == null)
+                InitialDialog();
+            object dialog = null;
+            if (_dialogs.TryGetValue(dialogName, out dialog))
+            {
+                if (dialog is IDialog<T>)
+                    return (IDialog<T>)dialog;
+            }
+            return null;
+        }
+
+        public Dictionary<string, List<string>> GetResponseData(string contextOrDialogName)
+        {
+            return new Dictionary<string, List<string>>();
+        }
+
+        private void InitialDialog()
+        {
+            _dialogs = new Dictionary<string, object>();
+            _dialogs.Add(HomeDialog.Name, new HomeDialog(this));
+        }
     }
 }

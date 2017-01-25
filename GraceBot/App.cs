@@ -7,6 +7,8 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Data;
+using Microsoft.Bot.Builder.Dialogs;
+using GraceBot.Dialogs;
 
 namespace GraceBot
 {
@@ -24,6 +26,10 @@ namespace GraceBot
 
         private Activity _activity;
         private UserRole _userRole;
+        private IDialog<object> _rootDialog;
+
+        // Feature Toggle for Using Dialogs 
+        private const bool USING_DIALOG = true;
 
         #endregion
 
@@ -40,6 +46,7 @@ namespace GraceBot
             _botManager = _factory.GetBotManager();
             _commandManager = _factory.GetCommandManager();
             _userRole = UserRole.User;
+            _rootDialog = _factory.GetGraceDialog<object>(HomeDialog.Name);
         }
 
         #region Methods
@@ -67,19 +74,25 @@ namespace GraceBot
                 return;
             }
 
-            // Check if this activity is replying message
-            var isReplyingMessage = await _botManager.GetUserDataPropertyAsync<bool>("replying", _activity);
-            if (isReplyingMessage)
-            {
-                await ProcessReplyAsync();
-                return;
-            }
-
             // Filter activity text
             var isPassedFilter = await _filter.FilterAsync(_activity);
             if (!isPassedFilter)
             {
                 await _botManager.ReplyToActivityAsync("Sorry, bad words detected, please try again.", _activity);
+                return;
+            }
+
+            if (USING_DIALOG)
+            {
+                await Conversation.SendAsync(_activity, () => _rootDialog);
+                return;
+            }
+
+            // Check if this activity is replying message
+            var isReplyingMessage = await _botManager.GetUserDataPropertyAsync<bool>("replying", _activity);
+            if (isReplyingMessage)
+            {
+                await ProcessReplyAsync();
                 return;
             }
 
