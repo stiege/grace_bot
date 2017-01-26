@@ -60,7 +60,8 @@ namespace GraceBot
             try
             {
                 userRole = _dbManager.GetUserRole(activity.From.Id);
-            } catch (RowNotInTableException ex)
+            }
+            catch (RowNotInTableException ex)
             {
                 userRole = UserRole.User;
             }
@@ -85,7 +86,7 @@ namespace GraceBot
 
             if (USING_DIALOG)
             {
-                await Conversation.SendAsync(activity, 
+                await Conversation.SendAsync(activity,
                     () => _factory.MakeGraceDialog<object>(DialogTypes.Home));
                 return;
             }
@@ -99,7 +100,7 @@ namespace GraceBot
             }
 
             // Respond to triggering words
-            switch (activity.Text.Split(' ')[0].Substring(0, CommandString.CMD_PREFIX.Length))
+            switch (activity.Text.Trim().Split(' ')[0].Substring(0, CommandString.CMD_PREFIX.Length))
             {
                 case CommandString.CMD_PREFIX:
                     {
@@ -151,27 +152,32 @@ namespace GraceBot
 
         private async Task ReplyDefinition(LuisResponse response)
         {
-            // Get the highest score subject
-            var subjectEntity =
-                response.entities.Where(e => e.type == "subject").OrderByDescending(o => o.score).FirstOrDefault();
+            var subjectEntities = response.entities.Where(e => e.type == "subject").ToList();
+
+            if (subjectEntities.Count > 1)
+            {
+                var replyText = "Please ask only one question at a time";
+                await _botManager.ReplyToActivityAsync(replyText, ActivityData.Activity);
+                return;
+            }
 
             // Get definition
-            var result = _definition.FindDefinition(subjectEntity.entity);
+            var result = _definition.FindDefinition(subjectEntities.FirstOrDefault()?.entity);
 
-            // If definition is null , forward...
             if (result == null)
             {
                 await SlackForwardAsync(ActivityData.Activity.Text);
+                return;
             }
-            else
-            {
-                // Reply definition to user
-                var replyActivity = await _botManager.ReplyToActivityAsync(result, ActivityData.Activity);
 
-                // Save to and update status in database
-                await _dbManager.AddActivity(replyActivity);
-                await _dbManager.UpdateActivityProcessStatus(ActivityData.Activity.Id, ProcessStatus.BotReplied);
-            }
+            // Reply definition to user
+            var replyActivity = await _botManager.ReplyToActivityAsync(result, ActivityData.Activity);
+
+            // Save to and update status in database
+            await _dbManager.AddActivity(replyActivity);
+            await _dbManager.UpdateActivityProcessStatus(ActivityData.Activity.Id, ProcessStatus.BotReplied);
+
+
         }
 
 

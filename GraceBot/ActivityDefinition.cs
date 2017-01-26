@@ -16,6 +16,10 @@ namespace GraceBot
         // Return the definition (if found) given an English word .
         public string FindDefinition(string subject)
         {
+            if (subject==null)
+            {
+                return null;
+            }
             string result;
             _definitions.TryGetValue(subject.ToUpper(), out result);
             return result;
