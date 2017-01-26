@@ -8,25 +8,47 @@ using System.Threading.Tasks;
 
 namespace GraceBot.Dialogs
 {
-    internal class GetDefinitionDialog : GraceDialog<IMessageActivity>
+    [Serializable]
+    internal class GetDefinitionDialog : GraceDialog<bool>
     {
-        private Dictionary<string, List<string>> _responses;
+        #region Fields
+        private Dictionary<DialogTypes, List<string>> _responses;
+        #endregion
 
-        public const string NAME = "GetDefinition";
-
-        public GetDefinitionDialog(IFactory factory, params object[] dialogVariables) : base(factory, dialogVariables)
+        #region Constructor
+        public GetDefinitionDialog(IFactory factory) : base(factory)
         {
-            _responses = _factory.GetResponseData(NAME);
+            _responses = _factory.GetResponseData(
+                DialogTypes.GetDefinition);
         }
+        #endregion
 
         public override async Task StartAsync(IDialogContext context)
         {
-            context.Wait(MessageReceivedAsync);
+            context.Wait<IList<string>>(GetDefinition);
         }
 
-        private Task MessageReceivedAsync(IDialogContext context, IAwaitable<IMessageActivity> argument)
+        private async Task GetDefinition(IDialogContext context, IAwaitable<IList<string>> result)
         {
-            throw new NotImplementedException();
+            var def = "";
+            foreach (var w in (await result))
+            {
+                def += w + " ";
+            }
+            await context.PostAsync("Definition for " + def);
+
+            context.Done(true);
+        }
+
+        private async Task MessageReceivedAsync(IDialogContext context, IAwaitable<IMessageActivity> argument)
+        {
+            var msg = (await argument).Text;
+            if (msg == "back")
+                context.Done("Back from GetDefinition");
+            else
+            {
+                var s = msg.Split(' ').ToList();
+            }
         }
 
     }

@@ -1,29 +1,31 @@
-﻿using Microsoft.Bot.Builder.Dialogs;
+﻿using GraceBot.Dialogs;
+using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Connector;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GraceBot
+namespace GraceBot.Dialogs
 {
-    internal abstract class GraceDialog<T> : IDialog<T>
+    [Serializable]
+    internal abstract class GraceDialog<R> : IDialog<R>
     {
         protected IFactory _factory;
-        protected object[] _dialogVariables;
-
+        
         private GraceDialog() { }
-        protected GraceDialog(IFactory factory, params object[] dialogVariables)
+        protected GraceDialog(IFactory factory)
         {
             _factory = factory;
-            _dialogVariables = dialogVariables;
         }
         
-        internal virtual void SetDialogVariables(params object[] dialogVariables)
-        {
-            _dialogVariables = dialogVariables;
-        }
-
         public abstract Task StartAsync(IDialogContext context);
+    }
+
+    public enum DialogTypes
+    {
+        Home,
+        GetDefinition
     }
 }

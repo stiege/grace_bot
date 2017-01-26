@@ -7,6 +7,7 @@ using Microsoft.Bot.Builder.Dialogs;
 
 namespace GraceBot
 {
+    [Serializable]
     internal class Factory : IFactory
     {
         private static IFactory _factoryInstance;
@@ -16,7 +17,7 @@ namespace GraceBot
         private static IDbManager _dbManagerInstance;
         private static IBotManager _botManagerInstance;
         private static ICommandManager _commandManagerInstance;
-        private static Dictionary<string, object> _dialogs;
+        private static Dictionary<DialogTypes, Func<object>> _dialogs;
 
         // disable default constructor
         private Factory()
@@ -85,29 +86,30 @@ namespace GraceBot
             }
         }
 
-        public GraceDialog<T> GetGraceDialog<T>(string dialogName)
+        public GraceDialog<R> MakeGraceDialog<R>(DialogTypes dialogType)
         {
             if (_dialogs == null)
                 InitialDialog();
-            object dialog = null;
-            if (_dialogs.TryGetValue(dialogName, out dialog))
+            Func<object> func = null;
+            if (_dialogs.TryGetValue(dialogType, out func))
             {
-                if (dialog is GraceDialog<T>)
-                    return (GraceDialog<T>)dialog;
+                var dialog = func.Invoke();
+                if (dialog is GraceDialog<R>)
+                    return (GraceDialog<R>)dialog;
             }
             return null;
         }
 
-        public Dictionary<string, List<string>> GetResponseData(string contextOrDialogName)
+        public Dictionary<DialogTypes, List<string>> GetResponseData(DialogTypes dialogType)
         {
-            return new Dictionary<string, List<string>>();
+            return new Dictionary<DialogTypes, List<string>>();
         }
 
         private void InitialDialog()
         {
-            _dialogs = new Dictionary<string, object>();
-            _dialogs.Add(HomeDialog.NAME, new HomeDialog(this));
-            _dialogs.Add(GetDefinitionDialog.NAME, new GetDefinitionDialog(this));
+            _dialogs = new Dictionary<DialogTypes, Func<object>>();
+            _dialogs.Add(DialogTypes.Home, () => new HomeDialog(this));
+            _dialogs.Add(DialogTypes.GetDefinition, () => new GetDefinitionDialog(this));
         }
     }
 }

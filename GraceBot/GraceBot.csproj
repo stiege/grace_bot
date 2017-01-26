@@ -175,6 +175,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActivityData.cs" />
     <Compile Include="ActivityDefinition.cs" />
     <Compile Include="ActivityFilter.cs" />
     <Compile Include="App.cs" />

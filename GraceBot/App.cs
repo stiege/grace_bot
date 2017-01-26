@@ -24,12 +24,16 @@ namespace GraceBot
         private readonly IBotManager _botManager;
         private readonly ICommandManager _commandManager;
 
-        private Activity _activity;
-        private UserRole _userRole;
-        private IDialog<object> _rootDialog;
+        private ActivityData ActivityData { get; set; }
+
+        ActivityData IApp.ActivityData
+        {
+            get { return ActivityData; }
+            set { ActivityData = value; }
+        }
 
         // Feature Toggle for Using Dialogs 
-        private const bool USING_DIALOG = true;
+        private const bool USING_DIALOG = false;
 
         #endregion
 
@@ -45,8 +49,6 @@ namespace GraceBot
             _slackManager = _factory.GetSlackManager();
             _botManager = _factory.GetBotManager();
             _commandManager = _factory.GetCommandManager();
-            _userRole = UserRole.User;
-            _rootDialog = _factory.GetGraceDialog<object>(HomeDialog.NAME);
         }
 
         #region Methods
@@ -54,20 +56,19 @@ namespace GraceBot
         // Determine activity (message) type and process accordingly as an asynchronous operation.
         public async Task RunAsync(Activity activity)
         {
-            // Set field activity to argument activity 
-            _activity = activity;
-
-            // Get user role
+            UserRole userRole;
             try
             {
-                _userRole = _dbManager.GetUserRole(_activity.From.Id);
+                userRole = _dbManager.GetUserRole(activity.From.Id);
             } catch (RowNotInTableException ex)
             {
-                _userRole = UserRole.User;
+                userRole = UserRole.User;
             }
 
+            ActivityData = new ActivityData(activity, userRole);
+
             // Check activity type, if not message, handle system message
-            var isMessageType = _activity.Type != ActivityTypes.Message;
+            var isMessageType = activity.Type != ActivityTypes.Message;
             if (isMessageType)
             {
                 await HandleSystemMessage();
@@ -75,21 +76,22 @@ namespace GraceBot
             }
 
             // Filter activity text
-            var isPassedFilter = await _filter.FilterAsync(_activity);
+            var isPassedFilter = await _filter.FilterAsync(activity);
             if (!isPassedFilter)
             {
-                await _botManager.ReplyToActivityAsync("Sorry, bad words detected, please try again.", _activity);
+                await _botManager.ReplyToActivityAsync("Sorry, bad words detected, please try again.", activity);
                 return;
             }
 
             if (USING_DIALOG)
             {
-                await Conversation.SendAsync(_activity, () => _rootDialog);
+                await Conversation.SendAsync(activity, 
+                    () => _factory.MakeGraceDialog<object>(DialogTypes.Home));
                 return;
             }
 
             // Check if this activity is replying message
-            var isReplyingMessage = await _botManager.GetUserDataPropertyAsync<bool>("replying", _activity);
+            var isReplyingMessage = await _botManager.GetUserDataPropertyAsync<bool>("replying", activity);
             if (isReplyingMessage)
             {
                 await ProcessReplyAsync();
@@ -97,13 +99,13 @@ namespace GraceBot
             }
 
             // Respond to triggering words
-            switch (_activity.Text.Split(' ')[0].Substring(0, CommandString.CMD_PREFIX.Length))
+            switch (activity.Text.Split(' ')[0].Substring(0, CommandString.CMD_PREFIX.Length))
             {
                 case CommandString.CMD_PREFIX:
                     {
                         // Execute Command 
-                        var cmd = _activity.Text.Split(' ')[0];
-                        await _commandManager.GetCommand(cmd, _userRole).Execute(_activity);
+                        var cmd = activity.Text.Split(' ')[0];
+                        await _commandManager.GetCommand(cmd, ActivityData.UserRole).Execute(activity);
                         break;
                     }
                 default:
@@ -121,10 +123,10 @@ namespace GraceBot
         private async Task ProcessActivityAsync()
         {
             // save the activity to db
-            await _dbManager.AddActivity(_activity, ProcessStatus.Unprocessed);
+            await _dbManager.AddActivity(ActivityData.Activity, ProcessStatus.Unprocessed);
 
             // get response from Luis
-            var response = await _luisManager.GetResponse(_activity.Text);
+            var response = await _luisManager.GetResponse(ActivityData.Activity.Text);
 
             // Check Luis response
             if (response == null)
@@ -140,7 +142,7 @@ namespace GraceBot
 
                 default:
                     {
-                        await SlackForwardAsync(_activity.Text);
+                        await SlackForwardAsync(ActivityData.Activity.Text);
                         break;
                     }
             }
@@ -159,16 +161,16 @@ namespace GraceBot
             // If definition is null , forward...
             if (result == null)
             {
-                await SlackForwardAsync(_activity.Text);
+                await SlackForwardAsync(ActivityData.Activity.Text);
             }
             else
             {
                 // Reply definition to user
-                var replyActivity = await _botManager.ReplyToActivityAsync(result, _activity);
+                var replyActivity = await _botManager.ReplyToActivityAsync(result, ActivityData.Activity);
 
                 // Save to and update status in database
                 await _dbManager.AddActivity(replyActivity);
-                await _dbManager.UpdateActivityProcessStatus(_activity.Id, ProcessStatus.BotReplied);
+                await _dbManager.UpdateActivityProcessStatus(ActivityData.Activity.Id, ProcessStatus.BotReplied);
             }
         }
 
@@ -177,10 +179,11 @@ namespace GraceBot
         private async Task ProcessReplyAsync()
         {
             // get the userQuestion activity in order to update the process status
-            var userQuestionActivity = _dbManager.FindActivity(await _botManager.GetUserDataPropertyAsync<string>("replyingToQuestionID", _activity));
+            var userQuestionActivity = _dbManager.FindActivity(
+                await _botManager.GetUserDataPropertyAsync<string>("replyingToQuestionID", ActivityData.Activity));
 
             // set the ReplyToID of the answer acitivity to the AcitivityID of userQuestionAcitivity
-            var rangerAnswerActivity = _activity;
+            var rangerAnswerActivity = ActivityData.Activity;
             rangerAnswerActivity.ReplyToId = userQuestionActivity.Id;
 
             // save the rangerAnswerAcitivty to database.
@@ -190,9 +193,9 @@ namespace GraceBot
             await _dbManager.UpdateActivityProcessStatus(userQuestionActivity.Id, ProcessStatus.Processed);
 
             // reset replying state of the user
-            await _botManager.SetUserDataPropertyAsync("replying", false, _activity);
+            await _botManager.SetUserDataPropertyAsync("replying", false, ActivityData.Activity);
 
-            await _botManager.ReplyToActivityAsync("Thanks, your answer has been received.", _activity);
+            await _botManager.ReplyToActivityAsync("Thanks, your answer has been received.", ActivityData.Activity);
         }
 
 
@@ -208,19 +211,19 @@ namespace GraceBot
                 reply += "Your question has been sent to OMGTech! team, we will get back to you ASAP.";
             }
 
-            await _botManager.ReplyToActivityAsync(reply, _activity);
+            await _botManager.ReplyToActivityAsync(reply, ActivityData.Activity);
         }
 
 
         // Handle various system messages as an asynchronous operation.
         private async Task HandleSystemMessage()
         {
-            switch (_activity.Type)
+            switch (ActivityData.Activity.Type)
             {
                 case ActivityTypes.DeleteUserData:
                     {
-                        await _botManager.DeleteStateForUserAsync(_activity);
-                        await _botManager.ReplyToActivityAsync($"The data of User {_activity.From.Id} has been deleted.", _activity);
+                        await _botManager.DeleteStateForUserAsync(ActivityData.Activity);
+                        await _botManager.ReplyToActivityAsync($"The data of User {ActivityData.Activity.From.Id} has been deleted.", ActivityData.Activity);
                         break;
                     }
                 case ActivityTypes.ConversationUpdate:

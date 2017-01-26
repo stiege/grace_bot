@@ -11,5 +11,7 @@ namespace GraceBot
         /// <param name="activity"></param>
         /// <returns></returns>
         Task RunAsync(Activity activity);
+
+        ActivityData ActivityData { get; set; }
     }
 }
