@@ -17,6 +17,8 @@ namespace GraceBot
         private static IDbManager _dbManagerInstance;
         private static IBotManager _botManagerInstance;
         private static ICommandManager _commandManagerInstance;
+        private static ILocalJsonManager _definitionManager;
+        private static ILocalJsonManager _autoReplyHomeManager;
         private static Dictionary<DialogTypes, Func<object>> _dialogs;
 
         // disable default constructor
@@ -73,17 +75,10 @@ namespace GraceBot
             return new ActivityFilter(File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + $"{sep}BadWords{sep}en"));
         }
 
-        public IDefinition GetActivityDefinition()
+        public ILocalJsonManager GetDefinitionManager()
         {
-            var sep = Path.DirectorySeparatorChar;
-            using (var reader =
-                new JsonTextReader(
-                new StreamReader(AppDomain.CurrentDomain.BaseDirectory + $"{sep}Words{sep}dictionary.json"))
-            )
-            {
-                var definitions = new JsonSerializer().Deserialize<Dictionary<string, string>>(reader);
-                return new ActivityDefinition(definitions);
-            }
+            _definitionManager = _definitionManager ?? new AutoReplyDefinitionManager();
+            return _definitionManager;
         }
 
         public GraceDialog<R> MakeGraceDialog<R>(DialogTypes dialogType)
@@ -110,6 +105,12 @@ namespace GraceBot
             _dialogs = new Dictionary<DialogTypes, Func<object>>();
             _dialogs.Add(DialogTypes.Home, () => new HomeDialog(this));
             _dialogs.Add(DialogTypes.GetDefinition, () => new GetDefinitionDialog(this));
+        }
+
+        public ILocalJsonManager GetAutoReplyHomeManager()
+        {
+            _autoReplyHomeManager = _autoReplyHomeManager ?? new AutoReplyHomeManager();
+            return _autoReplyHomeManager;
         }
     }
 }

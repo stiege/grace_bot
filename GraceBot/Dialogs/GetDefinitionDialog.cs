@@ -35,7 +35,7 @@ namespace GraceBot.Dialogs
             {
                 def += w + " ";
             }
-            await context.PostAsync("Definition for " + def);
+            await context.PostAsync("AutoReplyDefinitionManager for " + def);
 
             context.Done(true);
         }
@@ -44,7 +44,7 @@ namespace GraceBot.Dialogs
         {
             var msg = (await argument).Text;
             if (msg == "back")
-                context.Done("Back from GetDefinition");
+                context.Done("Back from GetDefinitionManager");
             else
             {
                 var s = msg.Split(' ').ToList();
