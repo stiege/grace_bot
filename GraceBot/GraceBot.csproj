@@ -170,13 +170,15 @@
     </Content>
     <Content Include="default.htm" />
     <Content Include="Global.asax" />
+    <Content Include="Images\logo.jpeg" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActivityData.cs" />
-    <Compile Include="ActivityDefinition.cs" />
+    <Compile Include="AutoReplyHomeManager.cs" />
+    <Compile Include="AutoReplyDefinitionManager.cs" />
     <Compile Include="ActivityFilter.cs" />
     <Compile Include="App.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
@@ -214,7 +216,7 @@
     </Compile>
     <Compile Include="IApp.cs" />
     <Compile Include="IDbManager.cs" />
-    <Compile Include="IDefinition.cs" />
+    <Compile Include="ILocalJsonManager.cs" />
     <Compile Include="IFactory.cs" />
     <Compile Include="IFilter.cs" />
     <Compile Include="Models\ChannelAccountModel.cs" />

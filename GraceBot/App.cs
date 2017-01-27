@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Data;
+using System.IO;
 using Microsoft.Bot.Builder.Dialogs;
 using GraceBot.Dialogs;
 using Microsoft.Rest;
@@ -38,7 +39,7 @@ namespace GraceBot
         {
             _factory = factory;
             _filter = _factory.GetActivityFilter();
-            _definition = _factory.GetActivityDefinition();
+            _definitionManager = _factory.GetDefinitionManager();
         }
 
         #region Methods
@@ -107,7 +108,7 @@ namespace GraceBot
             }
 
             // Respond to triggering words
-            switch (activity.Text.Split(' ')[0].Substring(0, CommandString.CMD_PREFIX.Length))
+            switch (activity.Text.Trim().Split(' ')[0].Substring(0, CommandString.CMD_PREFIX.Length))
             {
                 case CommandString.CMD_PREFIX:
                     {
@@ -139,9 +140,6 @@ namespace GraceBot
         // as an asynchronous operation.
         private async Task ProcessActivityAsync()
         {
-            // save the activity to db
-            await _factory.GetDbManager()
-                .AddActivity(ActivityData.Activity, ProcessStatus.Unprocessed);
 
             // get response from Luis
             var response = await _factory.GetLuisManager()
@@ -159,6 +157,12 @@ namespace GraceBot
                         break;
                     }
 
+                case "Greeting":
+                    {
+                        await ReplyGreeting();
+                        break;
+                    }
+
                 default:
                     {
                         await SlackForwardAsync(ActivityData.Activity.Text);
@@ -168,31 +172,45 @@ namespace GraceBot
 
         }
 
+        private async Task ReplyGreeting()
+        {
+            string replyText = _factory.GetAutoReplyHomeManager().GetValueByKey("greeting");
+            replyText += "\n\nPlease ask me questions OR type [HELP] for help.";
+
+            await _factory.GetBotManager().ReplyToActivityAsync(replyText, ActivityData.Activity);
+        }
+
         private async Task ReplyDefinition(LuisResponse response)
         {
-            // Get the highest score subject
-            var subjectEntity =
-                response.entities.Where(e => e.type == "subject").OrderByDescending(o => o.score).FirstOrDefault();
+            // save the activity to db
+            await _dbManager.AddActivity(ActivityData.Activity, ProcessStatus.Unprocessed);
+
+            var subjectEntities = response.entities.Where(e => e.type == "subject").ToList();
+
+            if (subjectEntities.Count > 1)
+            {
+                var replyText = "Please ask only one question at a time";
+                await _factory.GetBotManager().ReplyToActivityAsync(replyText, ActivityData.Activity);
+                return;
+            }
 
             // Get definition
-            var result = _definition.FindDefinition(subjectEntity.entity);
+            var result = _factory.GetDefinitionManager().GetValueByKey(subjectEntities.FirstOrDefault()?.entity);
 
-            // If definition is null , forward...
             if (result == null)
             {
                 await SlackForwardAsync(ActivityData.Activity.Text);
+                return;
             }
-            else
-            {
-                // Reply definition to user
-                var replyActivity = await _factory.GetBotManager()
-                    .ReplyToActivityAsync(result, ActivityData.Activity);
 
-                // Save to and update status in database
-                await _factory.GetDbManager().AddActivity(replyActivity);
-                await _factory.GetDbManager().UpdateActivityProcessStatus(
-                    ActivityData.Activity.Id, ProcessStatus.BotReplied);
-            }
+            // Reply definition to user
+            var replyActivity = await _factory.GetBotManager().ReplyToActivityAsync(result, ActivityData.Activity);
+
+            // Save to and update status in database
+            await _factory.GetDbManager().AddActivity(replyActivity);
+            await _factory.GetDbManager().UpdateActivityProcessStatus(ActivityData.Activity.Id, ProcessStatus.BotReplied);
+
+
         }
 
 
@@ -226,6 +244,8 @@ namespace GraceBot
         // Forward an unprocessed question to a Slack channel and notify the user as an asynchronous operation.
         private async Task SlackForwardAsync(string msg)
         {
+            // save the activity to db
+            await _dbManager.AddActivity(ActivityData.Activity, ProcessStatus.Unprocessed);
 
             var forwardResult = await _factory.GetSlackManager().Forward(msg);
 
@@ -258,6 +278,15 @@ namespace GraceBot
                     // Handle conversation state changes, like members being added and removed
                     // Use Activity.MembersAdded and Activity.MembersRemoved and Activity.Action for info
                     // Not available in all channels
+
+                    List<Attachment> attachments = null;
+                    var sep = Path.DirectorySeparatorChar;
+                    string imgUrl = AppDomain.CurrentDomain.BaseDirectory + $"{sep}Images{sep}logo.jpeg";
+                    var attachment = _botManager.GenerateImageCard("Welcome", "I'm Gracebot!", imgUrl);
+                    attachments = new List<Attachment> { attachment };
+
+                    await _factory.GetBotManager().ReplyToActivityAsync(null, ActivityData.Activity, attachments);
+
                     break;
                 case ActivityTypes.ContactRelationUpdate:
                     // Handle add/remove from contact lists

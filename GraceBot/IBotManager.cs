@@ -42,7 +42,20 @@ namespace GraceBot
         /// <param name="activity"></param>
         /// <returns></returns>
         Task<string[]> DeleteStateForUserAsync(Activity activity);
+        /// <summary>
+        /// Generate questions attachments
+        /// </summary>
+        /// <param name="activityList"></param>
+        /// <returns></returns>
         List<Attachment> GenerateQuestionsAttachments(List<Activity> activityList);
-
+        /// <summary>
+        /// Generate Image card
+        /// </summary>
+        /// <param name="title">card title</param>
+        /// <param name="subTitle">card subtitle</param>
+        /// <param name="imgUrl">Image url</param>
+        /// <param name="buttonsTitleUrlDictionary">Key valur pair dictionary(Title is key, value is url)</param>
+        /// <returns></returns>
+        Attachment GenerateImageCard(string title,string subTitle,string imgUrl,Dictionary<string,string> buttonsTitleUrlDictionary=null );
     }
 }
