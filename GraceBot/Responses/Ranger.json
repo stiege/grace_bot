@@ -6,7 +6,7 @@
     "Sorry, I did not get your answer, please select a number."
   ],
   "InputKeywords": [
-    "Please input keywords for searching, use comma \",\" as a separator to search with multiple keywords. Or input \",\" only to search for any unprocessed questions."
+    "* Please input keywords for searching, use comma \",\" as a separator to search with multiple keywords.\n* Or input a **SINGLE comma (\",\")** to search for ANY unprocessed questions."
   ],
   "RetryInputKeywords": [
     "Sorry, I did not get your answer, please try again."

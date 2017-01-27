@@ -109,7 +109,8 @@ namespace GraceBot
                             .Include(r => r.Recipient)
                             .Include(r => r.Conversation)
                             .Where(o => o.ProcessStatus == ProcessStatus.Unprocessed);
-            if (keywords != null && keywords.Count != 0)
+
+            if (keywords != null && keywords.Any())
             {
                 List<string> variants = new List<string>();
                 foreach (var w in keywords)

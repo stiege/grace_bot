@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace GraceBot.Dialogs
 {
@@ -13,7 +14,6 @@ namespace GraceBot.Dialogs
         #region Fields
         private int _amount;
         private List<string> _keywords;
-        private bool _aborted;
         #endregion
 
         public RangerDialog(IFactory factory) : base(factory)
@@ -23,17 +23,12 @@ namespace GraceBot.Dialogs
             if (_responses == null)
                 throw new InvalidOperationException(
                     $"Get {DialogTypes.Ranger.ToString()} Dialog responses data failed.");
-            _aborted = false;
         }
 
         public async Task StartAsync(IDialogContext context)
         {
-            if (_aborted)
-            {
-                _factory.GetBotManager().SetPrivateConversationDataProperty(
-                    "InDialog", DialogTypes.NonDialog);
-                _aborted = false;
-            }                
+            _amount = -1;
+            _keywords = null;
             context.Wait(MessageReceivedAsync);
         }
 
@@ -65,7 +60,7 @@ namespace GraceBot.Dialogs
                     _responses["RetryInputKeywords"][0]);
             } catch (Exception)
             {
-                _aborted = true;
+                context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
                 context.PostAsync(_responses["AbortRangerDialog"][0]);
                 context.Done<object>(null);
             }
@@ -78,7 +73,7 @@ namespace GraceBot.Dialogs
             {
                 _keywords[i] = _keywords[i].Trim(' ');
             }
-
+            _keywords.RemoveAll(w => w == "");
             await PostQuestionsToRanger(context);
             context.Wait(MessageReceivedAsync);
         }
