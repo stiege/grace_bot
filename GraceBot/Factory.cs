@@ -100,6 +100,12 @@ namespace GraceBot
             return null;
         }
 
+        public ILocalJsonManager GetAutoReplyHomeManager()
+        {
+            _autoReplyHomeManager = _autoReplyHomeManager ?? new AutoReplyHomeManager();
+            return _autoReplyHomeManager;
+        }
+
         #region Private Methods
         private GraceDialog MakeGraceDialog(DialogTypes dialogType)
         {

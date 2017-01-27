@@ -37,8 +37,13 @@ namespace GraceBot
             var activityModel = ConvertToModel(activity, processStatus);
             AttachReference(activityModel);
             _db.Activities.Add(activityModel);
-            await _db.SaveChangesAsync();
-
+            try
+            {
+                await _db.SaveChangesAsync();
+            } catch (Exception e)
+            {
+                var s = e.Message;
+            }
         }
 
         public async Task UpdateActivityProcessStatus(string activityId, ProcessStatus processStatus)
@@ -82,18 +87,11 @@ namespace GraceBot
 
             if (activityModel.Conversation != null)
             {
-                try
+                var conversationAccount = _db.ConversationAccounts.Find(activityModel.Conversation.Id);
+                if (conversationAccount != null)
                 {
-                    var conversationAccount = _db.ConversationAccounts.Find(activityModel.Conversation.Id);
-                    if (conversationAccount != null)
-                    {
-                        _db.ConversationAccounts.Attach(conversationAccount);
-                        activityModel.Conversation = conversationAccount;
-                    }
-                }
-                catch(Exception ex)
-                {
-                    var s = ex.Message;
+                    _db.ConversationAccounts.Attach(conversationAccount);
+                    activityModel.Conversation = conversationAccount;
                 }
             }
         }

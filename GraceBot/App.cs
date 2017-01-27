@@ -19,12 +19,11 @@ namespace GraceBot
         #region Fields
         private readonly IFactory _factory;
         private readonly IFilter _filter;
-        private readonly IDefinition _definition;
         #endregion
 
         #region FeatureToggle
         // Feature Toggle for Using Dialogs 
-        private const bool USING_DIALOG = false;
+        private const bool USING_DIALOG = true;
         #endregion
 
         private ActivityData ActivityData { get; set; }
@@ -39,7 +38,6 @@ namespace GraceBot
         {
             _factory = factory;
             _filter = _factory.GetActivityFilter();
-            _definitionManager = _factory.GetDefinitionManager();
         }
 
         #region Methods
@@ -165,7 +163,8 @@ namespace GraceBot
 
                 default:
                     {
-                        await SlackForwardAsync(ActivityData.Activity.Text);
+                        await _factory.GetBotManager().ReplyToActivityAsync(
+                            "Sorry I cannot understand.", ActivityData.Activity);
                         break;
                     }
             }
@@ -183,7 +182,7 @@ namespace GraceBot
         private async Task ReplyDefinition(LuisResponse response)
         {
             // save the activity to db
-            await _dbManager.AddActivity(ActivityData.Activity, ProcessStatus.Unprocessed);
+            await _factory.GetDbManager().AddActivity(ActivityData.Activity, ProcessStatus.Unprocessed);
 
             var subjectEntities = response.entities.Where(e => e.type == "subject").ToList();
 
@@ -209,6 +208,7 @@ namespace GraceBot
             // Save to and update status in database
             await _factory.GetDbManager().AddActivity(replyActivity);
             await _factory.GetDbManager().UpdateActivityProcessStatus(ActivityData.Activity.Id, ProcessStatus.BotReplied);
+            //await _factory.GetDbManager().AddActivity(ActivityData.Activity, ProcessStatus.BotReplied);
 
 
         }
@@ -244,15 +244,12 @@ namespace GraceBot
         // Forward an unprocessed question to a Slack channel and notify the user as an asynchronous operation.
         private async Task SlackForwardAsync(string msg)
         {
-            // save the activity to db
-            await _dbManager.AddActivity(ActivityData.Activity, ProcessStatus.Unprocessed);
-
             var forwardResult = await _factory.GetSlackManager().Forward(msg);
 
-            var reply = "Sorry, we currently don't have an answer for your question";
+            var reply = "Sorry, we currently don't have an answer for your question.";
             if (forwardResult)
             {
-                reply += "Your question has been sent to OMGTech! team, we will get back to you ASAP.";
+                reply += " Your question has been sent to OMGTech! team, we will get back to you ASAP.";
             }
 
             await _factory.GetBotManager()
@@ -281,8 +278,10 @@ namespace GraceBot
 
                     List<Attachment> attachments = null;
                     var sep = Path.DirectorySeparatorChar;
-                    string imgUrl = AppDomain.CurrentDomain.BaseDirectory + $"{sep}Images{sep}logo.jpeg";
-                    var attachment = _botManager.GenerateImageCard("Welcome", "I'm Gracebot!", imgUrl);
+                    string imgUrl = AppDomain.CurrentDomain
+                        .BaseDirectory + $"{sep}Images{sep}logo.jpeg";
+                    var attachment = _factory.GetBotManager()
+                        .GenerateImageCard("Welcome", "I'm Gracebot!", imgUrl);
                     attachments = new List<Attachment> { attachment };
 
                     await _factory.GetBotManager().ReplyToActivityAsync(null, ActivityData.Activity, attachments);

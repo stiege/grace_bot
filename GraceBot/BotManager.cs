@@ -92,7 +92,13 @@ namespace GraceBot
                 privateConversationData);
         }
 
-	public Attachment GenerateImageCard(string title, string subTitle, string imgUrl, Dictionary<string, string> buttonsTitleUrlDictionary=null)
+        public async Task<string[]> DeleteStateForUserAsync(Activity activity)
+        {
+            var stateClient = activity.GetStateClient();
+            return await stateClient.BotState.DeleteStateForUserAsync(activity.ChannelId, activity.From.Id);
+        }
+
+        public Attachment GenerateImageCard(string title, string subTitle, string imgUrl, Dictionary<string, string> buttonsTitleUrlDictionary=null)
         {
             List<CardImage> cardImages = new List<CardImage>();
             cardImages.Add(new CardImage(url: imgUrl));

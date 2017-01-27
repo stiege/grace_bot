@@ -62,7 +62,9 @@ namespace GraceBot.Tests
         public async Task RetrieveQuestions_No_Questions_Test()
         {
             var mFactory = new Mock<IFactory>();
-            mFactory.Setup((o => o.GetDbManager().FindUnprocessedQuestions(5))).Returns(new List<Activity>());
+            mFactory.Setup((o => o.GetDbManager()
+                .FindUnprocessedQuestions(It.IsAny<int>(), It.IsAny<List<string>>())))
+                .Returns(new List<Activity>());
 
             // set up a bot manager
             mFactory.Setup(o => o.GetBotManager().SetUserDataPropertyAsync("replying", true, _activity)).Returns(Task.CompletedTask);
@@ -90,7 +92,8 @@ namespace GraceBot.Tests
             var attachementsList = new List<Attachment>();
 
             var mFactory = new Mock<IFactory>();
-            mFactory.Setup((o => o.GetDbManager().FindUnprocessedQuestions(5)))
+            mFactory.Setup((o => o.GetDbManager()
+               .FindUnprocessedQuestions(It.IsAny<int>(), It.IsAny<List<string>>())))
                .Returns(activitiesList);
             mFactory.Setup(o => o.GetBotManager().GetUserDataPropertyAsync<bool>(It.IsAny<string>(), It.IsAny<Activity>()))
     .Returns(Task.FromResult(false));

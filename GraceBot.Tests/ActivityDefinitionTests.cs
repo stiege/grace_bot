@@ -10,7 +10,7 @@ namespace GraceBot.Tests
         public void RunWithBadWordTest()
         {
             var testLookup = new Dictionary<string, string> { { "KEY", "value"} };
-            var dut = new AutoReplyDefinitionManager(testLookup);
+            var dut = new AutoReplyDefinitionManager();
             Assert.That(dut.GetValueByKey("KEY"), Is.EqualTo("value"));
         }
     }
