@@ -190,6 +190,7 @@ namespace GraceBot.Dialogs
                 await context.PostAsync(_responses["ErrorMessage"][0]);
             }
             context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
+            context.PrivateConversationData.RemoveValue("AnswerActivity");
             context.Done<object>(null);
         }
         #endregion
