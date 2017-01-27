@@ -11,11 +11,4 @@ namespace GraceBot
     {
         Task Execute(Activity activity);
     }
-
-    public static class CommandString
-    {
-        public const string CMD_PREFIX = "//";
-        public const string GET_UNPROCESSED_QUESTIONS = CMD_PREFIX + "get";
-        public const string REPLYING_TO_QUESTION = CMD_PREFIX + "replyActivity";
-    }
 }

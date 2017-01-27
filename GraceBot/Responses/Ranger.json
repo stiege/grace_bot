@@ -1,4 +1,8 @@
 ﻿{
+  "ErrorMessage": [
+    "Sorry, unexpected error. Please try again later.",
+    "Sorry, fail to retrieve the question. Please check the activity id or try again later."
+  ],
   "SelectAnAmount": [
     "Please select the max number of questions you wish to get."
   ],
@@ -14,7 +18,19 @@
   "NoUnprocessQuestionsFound": [
     "It seems that no unprocessed questions match the query."
   ],
-  "AbortRangerDialog": [
+  "AbortSearchingUnprocessedQuestions": [
     "Abort searching unprocessed questions."
+  ],
+  "AbortReplyingQuestion": [
+    "Abort replying question."
+  ],
+  "AnsweringQuestionPrompt_{UserName}_{QuestionText}": [
+    "You are answering ***{UserName}***'s question:\n***\n{QuestionText}\n***\n**Please give your answer in the next message.**\n"
+  ],
+  "ConfirmAnswer_{Answer}": [
+    "Your answer was:\n***\n{Answer}\n***\n**Please confirm.**"
+  ],
+  "AnswerReceived": [
+    "Thanks, your answer has been received."
   ]
 }

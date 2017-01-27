@@ -183,7 +183,7 @@
     <Compile Include="App.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="BotManager.cs" />
-    <Compile Include="Command.cs" />
+    <Compile Include="Commands.cs" />
     <Compile Include="CommandManager.cs" />
     <Compile Include="DbManager.cs" />
     <Compile Include="Controllers\MessagesController.cs" />

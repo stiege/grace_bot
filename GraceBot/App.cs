@@ -83,14 +83,8 @@ namespace GraceBot
                     .GetPrivateConversationDataProperty<DialogTypes>("InDialog");
                 if (inDialog != DialogTypes.NonDialog)
                 {
-                    try
-                    {
-                        await Conversation.SendAsync(activity,
-                            () => _factory.MakeIDialog<object>(inDialog));
-                    } catch (Exception ex)
-                    {
-                        var s = ex.Message;
-                    }
+                    await Conversation.SendAsync(activity,
+                        () => _factory.MakeIDialog<object>(inDialog));
                     return;
                 }
             }
