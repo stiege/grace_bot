@@ -1,4 +1,5 @@
 ﻿using GraceBot.Dialogs;
+using Microsoft.Bot.Builder.Dialogs;
 using System.Collections.Generic;
 
 namespace GraceBot
@@ -13,7 +14,7 @@ namespace GraceBot
         ISlackManager GetSlackManager();
         IBotManager GetBotManager();
         ICommandManager GetCommandManager();
-        GraceDialog<R> MakeGraceDialog<R>(DialogTypes dialogType);
-        Dictionary<DialogTypes, List<string>> GetResponseData(DialogTypes dialogType);
+        IDialog<R> MakeIDialog<R>(DialogTypes dialogType);
+        Dictionary<string, List<string>> GetResponseData(DialogTypes dialogType);
     }
 }

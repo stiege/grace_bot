@@ -185,8 +185,8 @@
     <Compile Include="CommandManager.cs" />
     <Compile Include="DbManager.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
-    <Compile Include="Dialogs\GetDefinitionDialog.cs" />
     <Compile Include="Dialogs\HomeDialog.cs" />
+    <Compile Include="Dialogs\RangerDialog.cs" />
     <Compile Include="IBotManager.cs" />
     <Compile Include="IEFModels.cs" />
     <Compile Include="ICommand.cs" />
@@ -235,6 +235,8 @@
     <None Include="Properties\PublishProfiles\GraceBot20161125125146 - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\gracebottestfield - Web Deploy.pubxml" />
     <Content Include="Responses\Home.json" />
+    <Content Include="Responses\GetDefinition.json" />
+    <Content Include="Responses\Ranger.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

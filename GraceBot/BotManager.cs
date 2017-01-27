@@ -2,14 +2,23 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Bot.Connector;
+using GraceBot.Dialogs;
 
 namespace GraceBot
 {
     public class BotManager:IBotManager
     {
+        private IApp _app;
 
-        public async Task<Activity> ReplyToActivityAsync(string replyText, Activity originalAcitivty,
-            List<Attachment> attachments=null)
+        internal BotManager(IApp appInstance)
+        {
+            _app = appInstance;
+        }
+
+        public async Task<Activity> ReplyToActivityAsync(
+            string replyText, 
+            Activity originalAcitivty,
+            List<Attachment> attachments = null)
         {
             var connector = new ConnectorClient(new Uri(originalAcitivty.ServiceUrl));
             var replyAcitivty = originalAcitivty.CreateReply(replyText);
@@ -58,6 +67,29 @@ namespace GraceBot
             var userData = await stateClient.BotState.GetUserDataAsync(activity.ChannelId, activity.From.Id);
             userData.SetProperty<T>(property, data);
             await stateClient.BotState.SetUserDataAsync(activity.ChannelId, activity.From.Id, userData);
+        }
+
+        public T GetPrivateConversationDataProperty<T>(string property)
+        {
+            var activity = _app.ActivityData.Activity;
+            var stateClient = activity.GetStateClient();
+            var privateConversationData = stateClient.BotState.GetPrivateConversationData(
+                activity.ChannelId, activity.Conversation.Id, activity.From.Id);
+            var data = privateConversationData.GetProperty<T>(property);
+            return data;
+        }
+
+        public void SetPrivateConversationDataProperty<T>(string property, T data)
+        {
+            var activity = _app.ActivityData.Activity;
+            var stateClient = activity.GetStateClient();
+            var privateConversationData = stateClient.BotState.GetPrivateConversationData(
+                activity.ChannelId, activity.Conversation.Id, activity.From.Id);
+            stateClient.BotState.SetPrivateConversationData(
+                activity.ChannelId,
+                activity.Conversation.Id,
+                activity.From.Id, 
+                privateConversationData);
         }
 
         public async Task<string[]> DeleteStateForUserAsync(Activity activity)

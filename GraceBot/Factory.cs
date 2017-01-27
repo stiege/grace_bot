@@ -17,7 +17,7 @@ namespace GraceBot
         private static IDbManager _dbManagerInstance;
         private static IBotManager _botManagerInstance;
         private static ICommandManager _commandManagerInstance;
-        private static Dictionary<DialogTypes, Func<object>> _dialogs;
+        private static Dictionary<DialogTypes, Func<GraceDialog>> _dialogs;
 
         // disable default constructor
         private Factory()
@@ -31,7 +31,7 @@ namespace GraceBot
         }
         public IApp GetApp()
         {
-            _appInstance = _appInstance ?? new App(GetFactory());
+            _appInstance = _appInstance ?? new App(this);
             return _appInstance;
         }
 
@@ -57,7 +57,7 @@ namespace GraceBot
 
         public IBotManager GetBotManager()
         {
-            _botManagerInstance= _botManagerInstance??new BotManager();
+            _botManagerInstance= _botManagerInstance??new BotManager(_appInstance);
             return _botManagerInstance;
         }
 
@@ -86,30 +86,45 @@ namespace GraceBot
             }
         }
 
-        public GraceDialog<R> MakeGraceDialog<R>(DialogTypes dialogType)
+        public IDialog<R> MakeIDialog<R>(DialogTypes dialogType)
         {
-            if (_dialogs == null)
-                InitialDialog();
-            Func<object> func = null;
-            if (_dialogs.TryGetValue(dialogType, out func))
+            var graceDialog = MakeGraceDialog(dialogType);
+            return (IDialog<R>)graceDialog;
+        }
+
+        public Dictionary<string, List<string>> GetResponseData(DialogTypes dialogType)
+        {
+            var sep = Path.DirectorySeparatorChar;
+            using (var reader =
+                new JsonTextReader(
+                new StreamReader(AppDomain.CurrentDomain.BaseDirectory + $"{sep}Responses{sep}{dialogType.ToString()}.json"))
+            )
             {
-                var dialog = func.Invoke();
-                if (dialog is GraceDialog<R>)
-                    return (GraceDialog<R>)dialog;
+                return new JsonSerializer().Deserialize<Dictionary<string, List<string>>>(reader);
             }
             return null;
         }
 
-        public Dictionary<DialogTypes, List<string>> GetResponseData(DialogTypes dialogType)
+        #region Private Methods
+        private GraceDialog MakeGraceDialog(DialogTypes dialogType)
         {
-            return new Dictionary<DialogTypes, List<string>>();
+            if (_dialogs == null)
+                InitialDialog();
+            Func<GraceDialog> func = null;
+            if (_dialogs.TryGetValue(dialogType, out func))
+            {
+                return func.Invoke();
+            }
+            return null;
         }
+
 
         private void InitialDialog()
         {
-            _dialogs = new Dictionary<DialogTypes, Func<object>>();
+            _dialogs = new Dictionary<DialogTypes, Func<GraceDialog>>();
             _dialogs.Add(DialogTypes.Home, () => new HomeDialog(this));
-            _dialogs.Add(DialogTypes.GetDefinition, () => new GetDefinitionDialog(this));
+            _dialogs.Add(DialogTypes.Ranger, () => new RangerDialog(this));
         }
+        #endregion
     }
 }

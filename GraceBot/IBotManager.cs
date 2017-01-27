@@ -33,6 +33,9 @@ namespace GraceBot
         /// <returns></returns>
         Task SetUserDataPropertyAsync<T>(string property, T data, Activity activity);
 
+        T GetPrivateConversationDataProperty<T>(string property);
+        void SetPrivateConversationDataProperty<T>(string property, T data);
+
         /// <summary>
         /// Delete user state as an asynchronous operation.
         /// </summary>
@@ -40,5 +43,6 @@ namespace GraceBot
         /// <returns></returns>
         Task<string[]> DeleteStateForUserAsync(Activity activity);
         List<Attachment> GenerateQuestionsAttachments(List<Activity> activityList);
+
     }
 }

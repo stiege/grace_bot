@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Data;
 using Microsoft.Bot.Builder.Dialogs;
 using GraceBot.Dialogs;
+using Microsoft.Rest;
 
 namespace GraceBot
 {
@@ -18,25 +19,19 @@ namespace GraceBot
         private readonly IFactory _factory;
         private readonly IFilter _filter;
         private readonly IDefinition _definition;
-        private readonly IDbManager _dbManager;
-        private readonly ILuisManager _luisManager;
-        private readonly ISlackManager _slackManager;
-        private readonly IBotManager _botManager;
-        private readonly ICommandManager _commandManager;
+        #endregion
+
+        #region FeatureToggle
+        // Feature Toggle for Using Dialogs 
+        private const bool USING_DIALOG = false;
+        #endregion
 
         private ActivityData ActivityData { get; set; }
-
         ActivityData IApp.ActivityData
         {
             get { return ActivityData; }
             set { ActivityData = value; }
         }
-
-        // Feature Toggle for Using Dialogs 
-        private const bool USING_DIALOG = false;
-
-        #endregion
-
 
         // constructor 
         public App(IFactory factory)
@@ -44,11 +39,6 @@ namespace GraceBot
             _factory = factory;
             _filter = _factory.GetActivityFilter();
             _definition = _factory.GetActivityDefinition();
-            _dbManager = _factory.GetDbManager();
-            _luisManager = _factory.GetLuisManager();
-            _slackManager = _factory.GetSlackManager();
-            _botManager = _factory.GetBotManager();
-            _commandManager = _factory.GetCommandManager();
         }
 
         #region Methods
@@ -56,10 +46,11 @@ namespace GraceBot
         // Determine activity (message) type and process accordingly as an asynchronous operation.
         public async Task RunAsync(Activity activity)
         {
+            activity.Locale = "en-UK";
             UserRole userRole;
             try
             {
-                userRole = _dbManager.GetUserRole(activity.From.Id);
+                userRole = _factory.GetDbManager().GetUserRole(activity.From.Id);
             } catch (RowNotInTableException ex)
             {
                 userRole = UserRole.User;
@@ -79,19 +70,36 @@ namespace GraceBot
             var isPassedFilter = await _filter.FilterAsync(activity);
             if (!isPassedFilter)
             {
-                await _botManager.ReplyToActivityAsync("Sorry, bad words detected, please try again.", activity);
+                await _factory.GetBotManager().ReplyToActivityAsync(
+                    "Sorry, bad words detected, please try again.", activity);
                 return;
             }
 
+            #region InDialog Status Check
             if (USING_DIALOG)
             {
-                await Conversation.SendAsync(activity, 
-                    () => _factory.MakeGraceDialog<object>(DialogTypes.Home));
-                return;
+                // Only root-level dialogs need to be forwarded from here, 
+                // non-root level dialogs should not set the private conversation data anyway
+                var inDialog = _factory.GetBotManager()
+                    .GetPrivateConversationDataProperty<DialogTypes>("InDialog");
+                if (inDialog != DialogTypes.NonDialog)
+                {
+                    try
+                    {
+                        await Conversation.SendAsync(activity,
+                            () => _factory.MakeIDialog<object>(inDialog));
+                    } catch (Exception ex)
+                    {
+                        var s = ex.Message;
+                    }
+                    return;
+                }
             }
+            #endregion
 
             // Check if this activity is replying message
-            var isReplyingMessage = await _botManager.GetUserDataPropertyAsync<bool>("replying", activity);
+            var isReplyingMessage = await _factory.GetBotManager()
+                .GetUserDataPropertyAsync<bool>("replying", activity);
             if (isReplyingMessage)
             {
                 await ProcessReplyAsync();
@@ -103,9 +111,18 @@ namespace GraceBot
             {
                 case CommandString.CMD_PREFIX:
                     {
-                        // Execute Command 
-                        var cmd = activity.Text.Split(' ')[0];
-                        await _commandManager.GetCommand(cmd, ActivityData.UserRole).Execute(activity);
+                        if (USING_DIALOG)
+                        {
+                            await Conversation.SendAsync(activity, 
+                                () => _factory.MakeIDialog<object>(DialogTypes.Ranger));
+                        }
+                        else
+                        {
+                            // Execute Command 
+                            var cmd = activity.Text.Split(' ')[0];
+                            await _factory.GetCommandManager().GetCommand(
+                                cmd, ActivityData.UserRole).Execute(activity);
+                        }
                         break;
                     }
                 default:
@@ -123,10 +140,12 @@ namespace GraceBot
         private async Task ProcessActivityAsync()
         {
             // save the activity to db
-            await _dbManager.AddActivity(ActivityData.Activity, ProcessStatus.Unprocessed);
+            await _factory.GetDbManager()
+                .AddActivity(ActivityData.Activity, ProcessStatus.Unprocessed);
 
             // get response from Luis
-            var response = await _luisManager.GetResponse(ActivityData.Activity.Text);
+            var response = await _factory.GetLuisManager()
+                .GetResponse(ActivityData.Activity.Text);
 
             // Check Luis response
             if (response == null)
@@ -166,11 +185,13 @@ namespace GraceBot
             else
             {
                 // Reply definition to user
-                var replyActivity = await _botManager.ReplyToActivityAsync(result, ActivityData.Activity);
+                var replyActivity = await _factory.GetBotManager()
+                    .ReplyToActivityAsync(result, ActivityData.Activity);
 
                 // Save to and update status in database
-                await _dbManager.AddActivity(replyActivity);
-                await _dbManager.UpdateActivityProcessStatus(ActivityData.Activity.Id, ProcessStatus.BotReplied);
+                await _factory.GetDbManager().AddActivity(replyActivity);
+                await _factory.GetDbManager().UpdateActivityProcessStatus(
+                    ActivityData.Activity.Id, ProcessStatus.BotReplied);
             }
         }
 
@@ -179,23 +200,26 @@ namespace GraceBot
         private async Task ProcessReplyAsync()
         {
             // get the userQuestion activity in order to update the process status
-            var userQuestionActivity = _dbManager.FindActivity(
-                await _botManager.GetUserDataPropertyAsync<string>("replyingToQuestionID", ActivityData.Activity));
+            var userQuestionActivity = _factory.GetDbManager().FindActivity(
+                await _factory.GetBotManager().GetUserDataPropertyAsync<string>(
+                    "replyingToQuestionID", ActivityData.Activity));
 
             // set the ReplyToID of the answer acitivity to the AcitivityID of userQuestionAcitivity
             var rangerAnswerActivity = ActivityData.Activity;
             rangerAnswerActivity.ReplyToId = userQuestionActivity.Id;
 
             // save the rangerAnswerAcitivty to database.
-            await _dbManager.AddActivity(rangerAnswerActivity, ProcessStatus.BotReplied);
+            await _factory.GetDbManager().AddActivity(rangerAnswerActivity, ProcessStatus.BotReplied);
 
             // update the process status of userQuestionAcitivity
-            await _dbManager.UpdateActivityProcessStatus(userQuestionActivity.Id, ProcessStatus.Processed);
+            await _factory.GetDbManager().UpdateActivityProcessStatus(userQuestionActivity.Id, ProcessStatus.Processed);
 
             // reset replying state of the user
-            await _botManager.SetUserDataPropertyAsync("replying", false, ActivityData.Activity);
+            await _factory.GetBotManager().SetUserDataPropertyAsync(
+                "replying", false, ActivityData.Activity);
 
-            await _botManager.ReplyToActivityAsync("Thanks, your answer has been received.", ActivityData.Activity);
+            await _factory.GetBotManager().ReplyToActivityAsync(
+                "Thanks, your answer has been received.", ActivityData.Activity);
         }
 
 
@@ -203,7 +227,7 @@ namespace GraceBot
         private async Task SlackForwardAsync(string msg)
         {
 
-            var forwardResult = await _slackManager.Forward(msg);
+            var forwardResult = await _factory.GetSlackManager().Forward(msg);
 
             var reply = "Sorry, we currently don't have an answer for your question";
             if (forwardResult)
@@ -211,7 +235,8 @@ namespace GraceBot
                 reply += "Your question has been sent to OMGTech! team, we will get back to you ASAP.";
             }
 
-            await _botManager.ReplyToActivityAsync(reply, ActivityData.Activity);
+            await _factory.GetBotManager()
+                .ReplyToActivityAsync(reply, ActivityData.Activity);
         }
 
 
@@ -222,8 +247,11 @@ namespace GraceBot
             {
                 case ActivityTypes.DeleteUserData:
                     {
-                        await _botManager.DeleteStateForUserAsync(ActivityData.Activity);
-                        await _botManager.ReplyToActivityAsync($"The data of User {ActivityData.Activity.From.Id} has been deleted.", ActivityData.Activity);
+                        await _factory.GetBotManager()
+                            .DeleteStateForUserAsync(ActivityData.Activity);
+                        await _factory.GetBotManager().ReplyToActivityAsync(
+                            $"The data of User {ActivityData.Activity.From.Id} has been deleted.",
+                            ActivityData.Activity);
                         break;
                     }
                 case ActivityTypes.ConversationUpdate:

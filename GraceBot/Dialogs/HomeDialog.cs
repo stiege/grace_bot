@@ -9,12 +9,8 @@ using System.Threading;
 namespace GraceBot.Dialogs
 {
     [Serializable]
-    internal class HomeDialog : GraceDialog<object>
+    internal class HomeDialog : GraceDialog, IDialog<object>
     {
-        #region Fields
-        private Dictionary<DialogTypes, List<string>> _responses;
-        #endregion
-
         #region Constructor
         public HomeDialog(IFactory factory) : base(factory)
         {
@@ -23,7 +19,7 @@ namespace GraceBot.Dialogs
         }
         #endregion
 
-        public override async Task StartAsync(IDialogContext context)
+        public async Task StartAsync(IDialogContext context)
         {
             context.Wait(MessageReceivedAsync);
         }

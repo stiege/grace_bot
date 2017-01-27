@@ -64,7 +64,7 @@ namespace GraceBot
         /// 
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when amount is less than 1.</exception>
         /// <returns></returns>
-        List<Activity> FindUnprocessedQuestions(int amount);
+        List<Activity> FindUnprocessedQuestions(int amount = 5, List<string> keywords = null);
 
         /// <summary>
         /// Gets the Role of a UserAccount given the id of one of the user's ChannelAccount.

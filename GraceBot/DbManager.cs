@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using GraceBot.Models;
 using Microsoft.Bot.Connector;
+using System.Text.RegularExpressions;
 
 namespace GraceBot
 {
@@ -100,15 +101,33 @@ namespace GraceBot
 
         // Implement the method defined in IDbManager interface.
         // Return a list of activities in database (5 contiguous ones from the start) which stand for unprocessed questions.
-        public List<Activity> FindUnprocessedQuestions(int amount)
+        public List<Activity> FindUnprocessedQuestions(int amount = 5, List<string> keywords = null)
         {
             if (amount < 1)
                 throw new ArgumentOutOfRangeException("amount cannot be less than 1.");
-            var activityModel = _db.Activities.Include(r => r.From).Include(r => r.Recipient)
-                .Include(r => r.Conversation).Where(o => o.ProcessStatus == ProcessStatus.Unprocessed)
-                .Take(amount).ToList();
+
+            var query = _db.Activities
+                            .Include(r => r.From)
+                            .Include(r => r.Recipient)
+                            .Include(r => r.Conversation)
+                            .Where(o => o.ProcessStatus == ProcessStatus.Unprocessed);
+            if (keywords != null && keywords.Count != 0)
+            {
+                List<string> variants = new List<string>();
+                foreach (var w in keywords)
+                {
+                    variants.Add(w.ToLower());
+                    variants.Add(w.ToUpper());
+                    variants.Add(w.ToLowerInvariant());
+                    variants.Add(w.ToUpperInvariant());
+                }
+                keywords.AddRange(variants);
+                query = query.Where(o => keywords.Any(w => o.Text.Contains(w)));
+            }
+
+            var records = query.Take(amount).ToList();
             var activities = new List<Activity>();
-            foreach (var am in activityModel)
+            foreach (var am in records)
             {
                 activities.Add(ConvertToActivity(am));
             }

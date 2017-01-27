@@ -10,22 +10,24 @@ using System.Threading.Tasks;
 namespace GraceBot.Dialogs
 {
     [Serializable]
-    internal abstract class GraceDialog<R> : IDialog<R>
+    internal abstract class GraceDialog
     {
         protected IFactory _factory;
-        
+        protected Dictionary<string, List<string>> _responses;
+
         private GraceDialog() { }
         protected GraceDialog(IFactory factory)
         {
             _factory = factory;
         }
-        
-        public abstract Task StartAsync(IDialogContext context);
     }
 
     public enum DialogTypes
     {
+        NonDialog = 0,
+
         Home,
-        GetDefinition
+        GetDefinition,
+        Ranger,
     }
 }
