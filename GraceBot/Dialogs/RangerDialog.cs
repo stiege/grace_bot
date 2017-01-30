@@ -16,7 +16,6 @@ namespace GraceBot.Dialogs
         #region Fields
         private int _amount;
         private List<string> _keywords;
-        private string _questionActivityId;
         #endregion
 
         internal RangerDialog(IFactory factory) : base(factory)
@@ -32,7 +31,6 @@ namespace GraceBot.Dialogs
         {
             _amount = -1;
             _keywords = null;
-            _questionActivityId = null;
 
             context.Wait(MessageReceivedAsync);
         }
@@ -56,7 +54,9 @@ namespace GraceBot.Dialogs
                     }
                 case CommandString.REPLYING_TO_QUESTION:
                     {
-                        _questionActivityId = cmd[1];
+                        var question = _factory.GetDbManager().FindActivity(cmd[1]);
+                        if (question == null) goto default;
+                        context.PrivateConversationData.SetValue("QuestionActivity", question);
                         await ReplyToQuestion(context);
                         break;
                     }
@@ -83,7 +83,7 @@ namespace GraceBot.Dialogs
             } catch (TooManyAttemptsException)
             {
                 context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
-                context.PostAsync(_responses["AbortSearchingUnprocessedQuestions"][0]);
+                await context.PostAsync(_responses["AbortSearchingUnprocessedQuestions"][0]);
                 context.Done<object>(null);
             }
         }
@@ -122,8 +122,8 @@ namespace GraceBot.Dialogs
         #region Reply to Qustions
         private async Task ReplyToQuestion(IDialogContext context)
         {
-            var question = _factory.GetDbManager().FindActivity(_questionActivityId);
-            if (question == null)
+            Activity question;
+            if (!context.PrivateConversationData.TryGetValue("QuestionActivity", out question))
             {
                 await context.PostAsync(_responses["ErrorMessage"][0]);
                 context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
@@ -135,7 +135,7 @@ namespace GraceBot.Dialogs
             // TODO: UserName should be changed to UserAccount's Name, instead of 
             // ChannelAccount's Name
             // ***********************************************
-            var promptMsg = _responses["AnsweringQuestionPrompt_{UserName}_{QuestionText}"][0];
+            var promptMsg = _responses["AnsweringQuestionPrompt_{UserName}{QuestionText}"][0];
             promptMsg = Regex.Replace(promptMsg, "{UserName}", question.From.Name);
             promptMsg = Regex.Replace(promptMsg, "{QuestionText}", question.Text);
             PromptDialog.Text(context,
@@ -161,18 +161,23 @@ namespace GraceBot.Dialogs
         {
             try
             {
+                Activity question;
+                if (!context.PrivateConversationData.TryGetValue("QuestionActivity", out question))
+                    throw new InvalidOperationException("Cannot get the question data");
+
                 var confirm = await result;
-                Activity answerActivity;
-                if (!context.PrivateConversationData.TryGetValue("AnswerActivity", out answerActivity))
+                Activity answer;
+                if (!context.PrivateConversationData.TryGetValue("AnswerActivity", out answer))
                     throw new InvalidOperationException();
                 if (confirm)
                 {
-                    answerActivity.ReplyToId = _questionActivityId;
-                    await _factory.GetDbManager().AddActivity(answerActivity,
+                    answer.ReplyToId = question.Id;
+                    await _factory.GetDbManager().AddActivity(answer,
                         ProcessStatus.BotReplied);
                     await _factory.GetDbManager().UpdateActivityProcessStatus(
-                        _questionActivityId, ProcessStatus.Processed);
+                        question.Id, ProcessStatus.Processed);
                     await context.PostAsync(_responses["AnswerReceived"][0]);
+                    PostBackToUser(question, answer);
                 }
                 // throw an exception to abort
                 else throw new TooManyAttemptsException("");
@@ -185,13 +190,24 @@ namespace GraceBot.Dialogs
             {
                 // TODO Handle DataException
             }
-            catch(InvalidOperationException)
+            catch(InvalidOperationException ex)
             {
-                await context.PostAsync(_responses["ErrorMessage"][0]);
+                await context.PostAsync(_responses["ErrorMessage"][0] + "\n\n" + ex.Message);
             }
             context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
             context.PrivateConversationData.RemoveValue("AnswerActivity");
             context.Done<object>(null);
+        }
+
+        private void PostBackToUser(Activity question, Activity answer)
+        {
+            var reply = _responses["PostAnswerBackToUser_{UserName}{Question}{RangerName}{Answer}"][0];
+            // TODO change the names to UserAccount's Name
+            reply = Regex.Replace(reply, "{UserName}", question.From.Name);
+            reply = Regex.Replace(reply, "{Question}", question.Text);
+            reply = Regex.Replace(reply, "{RangerName}", answer.From.Name);
+            reply = Regex.Replace(reply, "{Answer}", answer.Text);
+            _factory.GetBotManager().ReplyToActivityAsync(reply, question);
         }
         #endregion
     }

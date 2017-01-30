@@ -24,7 +24,7 @@
   "AbortReplyingQuestion": [
     "Abort replying question."
   ],
-  "AnsweringQuestionPrompt_{UserName}_{QuestionText}": [
+  "AnsweringQuestionPrompt_{UserName}{QuestionText}": [
     "You are answering ***{UserName}***'s question:\n***\n{QuestionText}\n***\n**Please give your answer in the next message.**\n"
   ],
   "ConfirmAnswer_{Answer}": [
@@ -32,5 +32,8 @@
   ],
   "AnswerReceived": [
     "Thanks, your answer has been received."
+  ],
+  "PostAnswerBackToUser_{UserName}{Question}{RangerName}{Answer}": [
+    "Hi {UserName}, Your question: \n***\n {Question} \n***\n has answered by {RangerName}: \n***\n {Answer} \n***\n"
   ]
 }
