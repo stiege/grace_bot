@@ -1,8 +1,15 @@
 ﻿{
-  "ErrorMessage": [
-    "Sorry, unexpected error. Please try again later.",
+  "Error:General": [
+    "Sorry, unexpected error. Please try again later."
+  ],
+  "Error:FailToRetrieveQuestion": [
     "Sorry, fail to retrieve the question. Please check the activity id or try again later."
   ],
+  "Error:QuestionHasBeenAnswered": [
+    "This question has already been processed, thanks for your attention."
+  ],
+
+
   "SelectAnAmount": [
     "Please select the max number of questions you wish to get."
   ],

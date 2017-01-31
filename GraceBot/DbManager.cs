@@ -161,6 +161,14 @@ namespace GraceBot
             return userAccount.Role;
         }
 
+        public ProcessStatus GetProcessStatus(string activityId)
+        {
+            var activityRecord = _db.Activities.Include(r => r.From).Include(r => r.Recipient)
+                    .Include(r => r.Conversation).FirstOrDefault(o => o.ActivityId == activityId);
+            if (activityRecord == null) throw new RowNotInTableException("Cannot find the activity.");
+            return activityRecord.ProcessStatus;
+        }
+
         // Return an activityModel given an activity and its process status.
         internal static ActivityModel ConvertToModel(Activity activity, ProcessStatus? processStatus = null)
         {

@@ -77,5 +77,7 @@ namespace GraceBot
         /// 
         /// <returns></returns>
         UserRole GetUserRole(string channelAccountId);
+
+        ProcessStatus GetProcessStatus(string activityId);
     }
 }

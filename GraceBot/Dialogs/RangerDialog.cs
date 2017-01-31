@@ -22,16 +22,13 @@ namespace GraceBot.Dialogs
         {
             _responses = _factory.GetResponseData(
                 DialogTypes.Ranger);
-            if (_responses == null)
+            if (_responses == null || !_responses.Any())
                 throw new InvalidOperationException(
                     $"Get {DialogTypes.Ranger.ToString()} Dialog responses data failed.");
         }
 
         public async Task StartAsync(IDialogContext context)
         {
-            _amount = -1;
-            _keywords = null;
-
             context.Wait(MessageReceivedAsync);
         }
 
@@ -62,14 +59,26 @@ namespace GraceBot.Dialogs
                     }
                 default:
                     {
-                        await context.PostAsync(_responses["ErrorMessage"][0]);
-                        context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
-                        context.Done<object>(null);
+                        await context.PostAsync(_responses["Error:General"][0]);
+                        ResetDialog(context);
                         break;
                     }
             }
         }
-        
+
+        #region Reset Dialog
+        private void ResetDialog(IDialogContext context)
+        {
+            _amount = -1;
+            _keywords = null;
+
+            context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
+            context.PrivateConversationData.RemoveValue("QuestionActivity");
+            context.PrivateConversationData.RemoveValue("AnswerActivity");
+            context.Done<object>(null);
+        }
+        #endregion
+
         #region Search Unprocessed Questions
         private async Task AfterAmount(IDialogContext context, IAwaitable<long> result)
         {
@@ -82,9 +91,8 @@ namespace GraceBot.Dialogs
                     _responses["RetryInputKeywords"][0]);
             } catch (TooManyAttemptsException)
             {
-                context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
                 await context.PostAsync(_responses["AbortSearchingUnprocessedQuestions"][0]);
-                context.Done<object>(null);
+                ResetDialog(context);
             }
         }
 
@@ -97,8 +105,7 @@ namespace GraceBot.Dialogs
             }
             _keywords.RemoveAll(w => w == "");
             await PostQuestionsToRanger(context);
-            context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
-            context.Done<object>(null);
+            ResetDialog(context);
         }
 
         private async Task PostQuestionsToRanger(IDialogContext context)
@@ -125,10 +132,28 @@ namespace GraceBot.Dialogs
             Activity question;
             if (!context.PrivateConversationData.TryGetValue("QuestionActivity", out question))
             {
-                await context.PostAsync(_responses["ErrorMessage"][0]);
-                context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
-                context.Done<object>(null);
+                await context.PostAsync(_responses["Error:FailToRetrieveQuestion"][0]);
+                ResetDialog(context);
                 return;
+            }
+
+            try
+            {
+                if (_factory.GetDbManager().GetProcessStatus(question.Id) != ProcessStatus.Unprocessed)
+                    throw new InvalidOperationException(_responses["Error:QuestionHasBeenAnswered"][0]);
+            } catch (Exception ex)
+            {
+                if (ex is RowNotInTableException || ex is InvalidOperationException)
+                {
+                    context.PostAsync(ex.Message);
+                    ResetDialog(context);
+                    return;
+                }
+                else
+                {
+                    ResetDialog(context);
+                    throw ex;
+                }
             }
 
             // ***********************************************
@@ -141,7 +166,7 @@ namespace GraceBot.Dialogs
             PromptDialog.Text(context,
                 AfterInputAnswer,
                 promptMsg,
-                _responses["ErrorMessage"][0]);
+                _responses["Error:General"][0]);
         }
 
         private async Task AfterInputAnswer(IDialogContext context, IAwaitable<string> result)
@@ -192,11 +217,9 @@ namespace GraceBot.Dialogs
             }
             catch(InvalidOperationException ex)
             {
-                await context.PostAsync(_responses["ErrorMessage"][0] + "\n\n" + ex.Message);
+                await context.PostAsync(_responses["Error:General"][0] + "\n\n" + ex.Message);
             }
-            context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
-            context.PrivateConversationData.RemoveValue("AnswerActivity");
-            context.Done<object>(null);
+            ResetDialog(context);
         }
 
         private void PostBackToUser(Activity question, Activity answer)
@@ -210,5 +233,6 @@ namespace GraceBot.Dialogs
             _factory.GetBotManager().ReplyToActivityAsync(reply, question);
         }
         #endregion
+
     }
 }
