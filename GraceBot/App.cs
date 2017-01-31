@@ -19,6 +19,9 @@ namespace GraceBot
         #region Fields
         private readonly IFactory _factory;
         private readonly IFilter _filter;
+        private static IDefinition _definition;
+        private readonly IResponseManager _responseHomeManager;
+
         #endregion
 
         #region FeatureToggle
@@ -44,6 +47,10 @@ namespace GraceBot
         {
             _factory = factory;
             _filter = _factory.GetActivityFilter();
+
+            _definition = _factory.GetActivityDefinition();
+            _responseHomeManager = _factory.GetResponseManager(DialogTypes.Home.ToString());
+
         }
 
         #region Methods
@@ -56,7 +63,8 @@ namespace GraceBot
             try
             {
                 userRole = _factory.GetDbManager().GetUserRole(activity.From.Id);
-            } catch (RowNotInTableException ex)
+            }
+            catch (RowNotInTableException ex)
             {
                 userRole = UserRole.User;
             }
@@ -64,12 +72,15 @@ namespace GraceBot
             ActivityData = new ActivityData(activity, userRole);
 
             // Check activity type, if not message, handle system message
-            var isMessageType = activity.Type != ActivityTypes.Message;
-            if (isMessageType)
+            var isMessageType = activity.Type.Equals(ActivityTypes.Message);
+            if (!isMessageType)
             {
                 await HandleSystemMessage();
                 return;
             }
+
+            // Show typing indicator to user
+            await _factory.GetBotManager().ReplyIsTypingActivityAsync(ActivityData.Activity);
 
             // Filter activity text
             var isPassedFilter = await _filter.FilterAsync(activity);
@@ -115,7 +126,7 @@ namespace GraceBot
                             if (AUTHORISATION_RANGER && _factory.GetApp().ActivityData.UserRole != UserRole.Ranger)
                                 goto default;
                             await Conversation.SendAsync(activity, 
-                            () => _factory.MakeIDialog<object>(DialogTypes.Ranger));
+                                () => _factory.MakeIDialog<object>(DialogTypes.Ranger));
                         }
                         else
                         {
@@ -175,7 +186,7 @@ namespace GraceBot
 
         private async Task ReplyGreeting()
         {
-            string replyText = _factory.GetAutoReplyHomeManager().GetValueByKey("greeting");
+            string replyText = _responseHomeManager.GetResponseByKey("greeting");
             replyText += "\n\nPlease ask me questions OR type [HELP] for help.";
 
             await _factory.GetBotManager().ReplyToActivityAsync(replyText, ActivityData.Activity);
@@ -196,7 +207,8 @@ namespace GraceBot
             }
 
             // Get definition
-            var result = _factory.GetDefinitionManager().GetValueByKey(subjectEntities.FirstOrDefault()?.entity);
+            var result = _definition.FindDefinition(subjectEntities.FirstOrDefault()?.entity);
+
 
             if (result == null)
             {
@@ -210,8 +222,6 @@ namespace GraceBot
             // Save to and update status in database
             await _factory.GetDbManager().AddActivity(replyActivity);
             await _factory.GetDbManager().UpdateActivityProcessStatus(ActivityData.Activity.Id, ProcessStatus.BotReplied);
-            //await _factory.GetDbManager().AddActivity(ActivityData.Activity, ProcessStatus.BotReplied);
-
 
         }
 
@@ -279,9 +289,8 @@ namespace GraceBot
                     // Not available in all channels
 
                     List<Attachment> attachments = null;
-                    var sep = Path.DirectorySeparatorChar;
-                    string imgUrl = AppDomain.CurrentDomain
-                        .BaseDirectory + $"{sep}Images{sep}logo.jpeg";
+
+                    string imgUrl = "https://static1.squarespace.com/static/556e9677e4b099ded4a2e757/t/556fd5c8e4b063cd79bfe840/1485289348665";
                     var attachment = _factory.GetBotManager()
                         .GenerateImageCard("Welcome", "I'm Gracebot!", imgUrl);
                     attachments = new List<Attachment> { attachment };

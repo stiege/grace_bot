@@ -30,6 +30,15 @@ namespace GraceBot
             return replyAcitivty;
         }
 
+        public async Task ReplyIsTypingActivityAsync(Activity originalActivity)
+        {
+            Activity typingActivity = originalActivity.CreateReply();
+            typingActivity.Type = ActivityTypes.Typing;
+            typingActivity.Text = null;
+            var connector = new ConnectorClient(new Uri(originalActivity.ServiceUrl));
+            await connector.Conversations.ReplyToActivityAsync(typingActivity);
+        }
+
         public List<Attachment> GenerateQuestionsAttachments(List<Activity> activityList)
         {
             List<Attachment> attachments = new List<Attachment>();

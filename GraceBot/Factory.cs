@@ -17,8 +17,6 @@ namespace GraceBot
         private static IDbManager _dbManagerInstance;
         private static IBotManager _botManagerInstance;
         private static ICommandManager _commandManagerInstance;
-        private static ILocalJsonManager _definitionManager;
-        private static ILocalJsonManager _autoReplyHomeManager;
         private static Dictionary<DialogTypes, Func<GraceDialog>> _dialogs;
 
         // disable default constructor
@@ -75,11 +73,6 @@ namespace GraceBot
             return new ActivityFilter(File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + $"{sep}BadWords{sep}en"));
         }
 
-        public ILocalJsonManager GetDefinitionManager()
-        {
-            _definitionManager = _definitionManager ?? new AutoReplyDefinitionManager();
-            return _definitionManager;
-        }
 
         public IDialog<R> MakeIDialog<R>(DialogTypes dialogType)
         {
@@ -100,11 +93,7 @@ namespace GraceBot
             return null;
         }
 
-        public ILocalJsonManager GetAutoReplyHomeManager()
-        {
-            _autoReplyHomeManager = _autoReplyHomeManager ?? new AutoReplyHomeManager();
-            return _autoReplyHomeManager;
-        }
+
 
         #region Private Methods
         private GraceDialog MakeGraceDialog(DialogTypes dialogType)
@@ -126,6 +115,35 @@ namespace GraceBot
             _dialogs.Add(DialogTypes.Home, () => new HomeDialog(this));
             _dialogs.Add(DialogTypes.Ranger, () => new RangerDialog(this));
         }
+
+        public IDefinition GetActivityDefinition()
+        {
+            var sep = Path.DirectorySeparatorChar;
+            using (var reader =
+                new JsonTextReader(
+                new StreamReader(AppDomain.CurrentDomain.BaseDirectory + $"{sep}Words{sep}dictionary.json"))
+            )
+            {
+                var definitions = new JsonSerializer().Deserialize<Dictionary<string, string>>(reader);
+                return new ActivityDefinition(definitions);
+            }
+        }
+
+        public IResponseManager GetResponseManager(string fileName)
+        {
+            Dictionary<string, string[]> dictionary;
+            var sep = Path.DirectorySeparatorChar;
+            using (var reader =
+                new JsonTextReader(
+                new StreamReader(AppDomain.CurrentDomain.BaseDirectory + $"{sep}Responses{sep}{fileName}.json")))
+            {
+                dictionary = new JsonSerializer().Deserialize<Dictionary<string, string[]>>(reader);
+                dictionary = new Dictionary<string, string[]>(dictionary, StringComparer.OrdinalIgnoreCase);
+            }
+            return new ResponseManager(dictionary);
+        }
+
+
         #endregion
     }
 }
