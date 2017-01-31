@@ -22,8 +22,14 @@ namespace GraceBot
         #endregion
 
         #region FeatureToggle
-        // Feature Toggle for Using Dialogs 
+        // Using Dialogs
+        // If set to true, then some features will be implemented with dialogs 
         private const bool USING_DIALOG = true;
+
+        // If enabled then some Ranger exclusive features will only be available to 
+        // registered rangers (in database). This should ONLY be set to false for 
+        // locally debuging purpose.
+        private const bool AUTHORISATION_RANGER = true;
         #endregion
 
         private ActivityData ActivityData { get; set; }
@@ -106,8 +112,10 @@ namespace GraceBot
                     {
                         if (USING_DIALOG)
                         {
+                            if (AUTHORISATION_RANGER && _factory.GetApp().ActivityData.UserRole != UserRole.Ranger)
+                                goto default;
                             await Conversation.SendAsync(activity, 
-                                () => _factory.MakeIDialog<object>(DialogTypes.Ranger));
+                            () => _factory.MakeIDialog<object>(DialogTypes.Ranger));
                         }
                         else
                         {
