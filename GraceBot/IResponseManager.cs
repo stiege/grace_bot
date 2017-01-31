@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GraceBot
 {
-    internal interface ILocalJsonManager
+    internal interface IResponseManager
     {
 
         /// <summary>
@@ -14,6 +14,6 @@ namespace GraceBot
         /// </summary>
         /// <param name="key">key</param>
         /// <returns>value</returns>
-        string GetValueByKey(string key);
+        string GetResponseByKey(string key);
     }
 }

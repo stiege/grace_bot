@@ -15,6 +15,12 @@ namespace GraceBot
         /// <returns></returns>
         Task<Activity> ReplyToActivityAsync(string replyText, Activity originalAcitivty,List<Attachment> attachments=null);
         /// <summary>
+        /// Reply an IsTyping activity, showing user the IS TYPING status
+        /// </summary>
+        /// <param name="originalActivity">The activity to reply to</param>
+        /// <returns></returns>
+        Task ReplyIsTypingActivityAsync(Activity originalActivity);
+        /// <summary>
         /// Get user state as an asynchronous operation.
         /// </summary>
         /// <typeparam name="T"></typeparam>

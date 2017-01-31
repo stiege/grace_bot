@@ -7,14 +7,14 @@ namespace GraceBot
     internal interface IFactory
     {   
         IApp GetApp();
-        ILocalJsonManager GetDefinitionManager();
+        IResponseManager GetResponseManager(string fileName);
+        IDefinition GetActivityDefinition();
         IFilter GetActivityFilter();
         IDbManager GetDbManager();
         ILuisManager GetLuisManager();
         ISlackManager GetSlackManager();
         IBotManager GetBotManager();
         ICommandManager GetCommandManager();
-        ILocalJsonManager GetAutoReplyHomeManager();
         IDialog<R> MakeIDialog<R>(DialogTypes dialogType);
         Dictionary<string, List<string>> GetResponseData(DialogTypes dialogType);
     }
