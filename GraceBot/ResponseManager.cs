@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 
 namespace GraceBot
 {
+    [Serializable]
     public class ResponseManager : IResponseManager
     {
         private readonly Dictionary<string, string[]> _dictionary;
@@ -15,8 +16,12 @@ namespace GraceBot
 
         public ResponseManager(Dictionary<string, string[]> dictionary)
         {
-            _dictionary = dictionary;
+            if (dictionary == null)
+                _dictionary = new Dictionary<string, string[]>();
+            else
+                _dictionary = dictionary;
         }
+
         public string GetResponseByKey(string key)
         {
             if (key == null)

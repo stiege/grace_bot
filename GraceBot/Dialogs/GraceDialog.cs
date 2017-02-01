@@ -13,12 +13,13 @@ namespace GraceBot.Dialogs
     internal abstract class GraceDialog
     {
         protected IFactory _factory;
-        protected Dictionary<string, List<string>> _responses;
+        protected IResponseManager _responses;
 
         private GraceDialog() { }
-        protected GraceDialog(IFactory factory)
+        protected GraceDialog(IFactory factory, IResponseManager responses)
         {
             _factory = factory;
+            _responses = responses;
         }
     }
 

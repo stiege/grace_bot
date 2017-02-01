@@ -36,6 +36,19 @@ namespace GraceBot
             return _appInstance;
         }
 
+        public IDefinition GetActivityDefinition()
+        {
+            var sep = Path.DirectorySeparatorChar;
+            using (var reader =
+                new JsonTextReader(
+                new StreamReader(AppDomain.CurrentDomain.BaseDirectory + $"{sep}Words{sep}dictionary.json"))
+            )
+            {
+                var definitions = new JsonSerializer().Deserialize<Dictionary<string, string>>(reader);
+                return new ActivityDefinition(definitions);
+            }
+        }
+
         public ILuisManager GetLuisManager()
         {
             _luisManagerInstance= _luisManagerInstance??new LuisManager();
@@ -89,8 +102,28 @@ namespace GraceBot
 
         public IDialog<R> MakeIDialog<R>(DialogTypes dialogType)
         {
-            var graceDialog = MakeGraceDialog(dialogType);
-            return (IDialog<R>)graceDialog;
+            if (_dialogs == null)
+                InitialDialog();
+            Func<GraceDialog> func = null;
+            if (_dialogs.TryGetValue(dialogType, out func))
+            {
+                return (IDialog<R>) func.Invoke();
+            }
+            return null;
+        }
+
+        public IResponseManager GetResponseManager(string fileName)
+        {
+            Dictionary<string, string[]> dictionary;
+            var sep = Path.DirectorySeparatorChar;
+            using (var reader =
+                new JsonTextReader(
+                new StreamReader(AppDomain.CurrentDomain.BaseDirectory + $"{sep}Responses{sep}{fileName}.json")))
+            {
+                dictionary = new JsonSerializer().Deserialize<Dictionary<string, string[]>>(reader);
+                dictionary = new Dictionary<string, string[]>(dictionary, StringComparer.OrdinalIgnoreCase);
+            }
+            return new ResponseManager(dictionary);
         }
 
         public Dictionary<string, List<string>> GetResponseData(DialogTypes dialogType)
@@ -108,54 +141,14 @@ namespace GraceBot
 
 
         #region Private Methods
-        private GraceDialog MakeGraceDialog(DialogTypes dialogType)
-        {
-            if (_dialogs == null)
-                InitialDialog();
-            Func<GraceDialog> func = null;
-            if (_dialogs.TryGetValue(dialogType, out func))
-            {
-                return func.Invoke();
-            }
-            return null;
-        }
-
-
         private void InitialDialog()
         {
             _dialogs = new Dictionary<DialogTypes, Func<GraceDialog>>();
-            _dialogs.Add(DialogTypes.Home, () => new HomeDialog(this));
-            _dialogs.Add(DialogTypes.Ranger, () => new RangerDialog(this));
+
+            var rangerResponses = GetResponseManager(DialogTypes.Ranger.ToString());
+            _dialogs.Add(DialogTypes.Ranger, 
+                () => new RangerDialog(this, rangerResponses));
         }
-
-        public IDefinition GetActivityDefinition()
-        {
-            var sep = Path.DirectorySeparatorChar;
-            using (var reader =
-                new JsonTextReader(
-                new StreamReader(AppDomain.CurrentDomain.BaseDirectory + $"{sep}Words{sep}dictionary.json"))
-            )
-            {
-                var definitions = new JsonSerializer().Deserialize<Dictionary<string, string>>(reader);
-                return new ActivityDefinition(definitions);
-            }
-        }
-
-        public IResponseManager GetResponseManager(string fileName)
-        {
-            Dictionary<string, string[]> dictionary;
-            var sep = Path.DirectorySeparatorChar;
-            using (var reader =
-                new JsonTextReader(
-                new StreamReader(AppDomain.CurrentDomain.BaseDirectory + $"{sep}Responses{sep}{fileName}.json")))
-            {
-                dictionary = new JsonSerializer().Deserialize<Dictionary<string, string[]>>(reader);
-                dictionary = new Dictionary<string, string[]>(dictionary, StringComparer.OrdinalIgnoreCase);
-            }
-            return new ResponseManager(dictionary);
-        }
-
-
         #endregion
     }
 }
