@@ -12,7 +12,8 @@ namespace GraceBot
         IFilter GetActivityFilter();
         IDbManager GetDbManager();
         ILuisManager GetLuisManager();
-        ISlackManager GetSlackManager();
+        ISlackManager GetQuestionSlackManager();
+        ISlackManager GetExceptionSlackManager();
         IBotManager GetBotManager();
         ICommandManager GetCommandManager();
         IDialog<R> MakeIDialog<R>(DialogTypes dialogType);

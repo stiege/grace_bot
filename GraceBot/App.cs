@@ -32,7 +32,7 @@ namespace GraceBot
         // If enabled then some Ranger exclusive features will only be available to 
         // registered rangers (in database). This should ONLY be set to false for 
         // locally debuging purpose.
-        private const bool AUTHORISATION_RANGER = true;
+        private const bool AUTHORISATION_RANGER = false;
         #endregion
 
         private ActivityData ActivityData { get; set; }
@@ -256,7 +256,7 @@ namespace GraceBot
         // ForwardMessageAsync an unprocessed question to a Slack channel and notify the user as an asynchronous operation.
         private async Task SlackForwardAsync(string msg)
         {
-            var forwardResult = await _factory.GetSlackManager().ForwardMessageAsync(msg);
+            var forwardResult = await _factory.GetQuestionSlackManager().ForwardMessageAsync(msg);
 
             var reply = "Sorry, we currently don't have an answer for your question.";
             if (forwardResult)

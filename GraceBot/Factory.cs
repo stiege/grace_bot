@@ -13,7 +13,8 @@ namespace GraceBot
         private static IFactory _factoryInstance;
         private static IApp _appInstance;
         private static ILuisManager _luisManagerInstance;
-        private static ISlackManager _slackManagerInstance;
+        private static ISlackManager _questionSlackMangerInstance;
+        private static ISlackManager _exceptionSlackMangerInstance;
         private static IDbManager _dbManagerInstance;
         private static IBotManager _botManagerInstance;
         private static ICommandManager _commandManagerInstance;
@@ -35,22 +36,30 @@ namespace GraceBot
             return _appInstance;
         }
 
-        // Return a new 
         public ILuisManager GetLuisManager()
         {
             _luisManagerInstance= _luisManagerInstance??new LuisManager();
             return _luisManagerInstance;
         }
 
-        // Return a new 
-        public ISlackManager GetSlackManager()
+        public ISlackManager GetQuestionSlackManager()
         {
-            if (_slackManagerInstance != null)
-                return _slackManagerInstance;
+            if (_questionSlackMangerInstance != null)
+                return _questionSlackMangerInstance;
 
             var uri = Environment.GetEnvironmentVariable("WEBHOOK_URL");
-            _slackManagerInstance = new SlackManager(uri, "#5-grace-questions", "GraceBot_UserEnquiry");
-            return _slackManagerInstance;
+            _questionSlackMangerInstance = new SlackManager(uri, "#5-grace-questions", "GraceBot_UserEnquiry");
+            return _questionSlackMangerInstance;
+        }
+
+        public ISlackManager GetExceptionSlackManager()
+        {
+            if (_exceptionSlackMangerInstance != null)
+                return _exceptionSlackMangerInstance;
+
+            var uri = Environment.GetEnvironmentVariable("WEBHOOK_URL");
+            _exceptionSlackMangerInstance = new SlackManager(uri, "#5-grace-questions", "GraceBot_Exceptions");
+            return _exceptionSlackMangerInstance;
         }
 
         public IDbManager GetDbManager()

@@ -91,7 +91,7 @@ namespace GraceBot.Tests
             mFactory.Setup(f => f.GetActivityFilter().FilterAsync(It.IsAny<Activity>())).Returns(Task.FromResult(true));
             mFactory.Setup(o => o.GetDbManager().AddActivity(It.IsAny<Activity>(), It.IsAny<ProcessStatus>())).Returns(Task.CompletedTask);
             mFactory.Setup(o=>o.GetLuisManager().GetResponse(It.IsAny<string>())).Returns(Task.FromResult(response));
-            mFactory.Setup(o => o.GetSlackManager().ForwardMessageAsync(It.IsAny<string>())).Returns(Task.FromResult(true));
+            mFactory.Setup(o => o.GetQuestionSlackManager().ForwardMessageAsync(It.IsAny<string>())).Returns(Task.FromResult(true));
 
             var app = new App(mFactory.Object);
 
