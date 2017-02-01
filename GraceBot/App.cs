@@ -253,10 +253,10 @@ namespace GraceBot
         }
 
 
-        // Forward an unprocessed question to a Slack channel and notify the user as an asynchronous operation.
+        // ForwardMessageAsync an unprocessed question to a Slack channel and notify the user as an asynchronous operation.
         private async Task SlackForwardAsync(string msg)
         {
-            var forwardResult = await _factory.GetSlackManager().Forward(msg);
+            var forwardResult = await _factory.GetSlackManager().ForwardMessageAsync(msg);
 
             var reply = "Sorry, we currently don't have an answer for your question.";
             if (forwardResult)

@@ -5,6 +5,13 @@ namespace GraceBot
 {
     public interface ISlackManager
     {
-        Task<bool> Forward(string msg);
+        /// <summary>
+        /// Forward a text message to a specified slack channel.
+        /// </summary>
+        /// 
+        /// <param name="msg">The message to be forwarded</param>
+        /// 
+        /// <returns>True if the message is forwarded successfully</returns>
+        Task<bool> ForwardMessageAsync(string msg);
     }
 }

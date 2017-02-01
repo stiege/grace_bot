@@ -10,24 +10,34 @@ using Newtonsoft.Json;
 
 namespace GraceBot
 {
-    public class SlackManager : ISlackManager
+    internal class SlackManager : ISlackManager
     {
-        public async Task<bool> Forward(string msg)
-        {
-            var uri = Environment.GetEnvironmentVariable("WEBHOOK_URL");
+        private string _uri;
+        private string _channel;
+        private string _userName;
 
+        private SlackManager() { }
+        internal SlackManager(string uri, string channel, string userName)
+        {
+            _uri = uri;
+            _channel = channel;
+            _userName = userName;
+        }
+        
+        public async Task<bool> ForwardMessageAsync(string msg)
+        {
             var payload = new Payload()
             {
                 Text = msg,
-                Channel = "#5-grace-questions",
-                Username = "GraceBot_UserEnquiry",
+                Channel = _channel,
+                Username = _userName,
             };
 
             var serializedPayload = JsonConvert.SerializeObject(payload);
-
             using (var client = new HttpClient())
             {
-                var rsponse = await client.PostAsync(uri, new StringContent(serializedPayload, Encoding.UTF8, "application/json"));
+                var rsponse = await client.PostAsync(_uri, 
+                    new StringContent(serializedPayload, Encoding.UTF8, "application/json"));
                 if (rsponse.IsSuccessStatusCode)
                 {
                     return true;

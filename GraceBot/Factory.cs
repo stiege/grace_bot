@@ -45,7 +45,11 @@ namespace GraceBot
         // Return a new 
         public ISlackManager GetSlackManager()
         {
-            _slackManagerInstance= _slackManagerInstance?? new SlackManager();
+            if (_slackManagerInstance != null)
+                return _slackManagerInstance;
+
+            var uri = Environment.GetEnvironmentVariable("WEBHOOK_URL");
+            _slackManagerInstance = new SlackManager(uri, "#5-grace-questions", "GraceBot_UserEnquiry");
             return _slackManagerInstance;
         }
 
@@ -92,7 +96,6 @@ namespace GraceBot
             }
             return null;
         }
-
 
 
         #region Private Methods
