@@ -39,7 +39,7 @@ namespace GraceBot.Dialogs
                             AfterAmount,
                             (new long[] { 3, 5, 10 }).AsEnumerable(),
                             _responses.GetResponseByKey("SelectAnAmount"),
-                            _responses.GetResponseByKey("RetryInputAmount")
+                            _responses.GetResponseByKey("Retry:InputAmount")
                             );
                         break;
                     }
@@ -82,7 +82,7 @@ namespace GraceBot.Dialogs
                 PromptDialog.Text(context,
                     AfterKeywords,
                     _responses.GetResponseByKey("InputKeywords"),
-                    _responses.GetResponseByKey("RetryInputKeywords"));
+                    _responses.GetResponseByKey("Retry:General"));
             } catch (TooManyAttemptsException)
             {
                 await context.PostAsync(_responses.GetResponseByKey("AbortSearchingUnprocessedQuestions"));
@@ -135,19 +135,12 @@ namespace GraceBot.Dialogs
             {
                 if (_factory.GetDbManager().GetProcessStatus(question.Id) != ProcessStatus.Unprocessed)
                     throw new InvalidOperationException(_responses.GetResponseByKey("Error:QuestionHasBeenAnswered"));
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
-                if (ex is RowNotInTableException || ex is InvalidOperationException)
-                {
-                    context.PostAsync(ex.Message);
-                    ResetDialog(context);
-                    return;
-                }
-                else
-                {
-                    ResetDialog(context);
-                    throw ex;
-                }
+                context.PostAsync(_responses.GetResponseByKey("Error:General"));
+                ResetDialog(context);
+                throw ex;
             }
 
             // ***********************************************
@@ -171,9 +164,11 @@ namespace GraceBot.Dialogs
 
             var confirmMsg = _responses.GetResponseByKey("ConfirmAnswer_{Answer}");
             confirmMsg = Regex.Replace(confirmMsg, "{Answer}", answerText);
+            await context.PostAsync(confirmMsg);
             PromptDialog.Confirm(context,
                 AfterConfirmAnswer,
-                confirmMsg);
+                "Please confirm.",
+                _responses.GetResponseByKey("Retry:Confirm"));
         }
 
         private async Task AfterConfirmAnswer(IDialogContext context, IAwaitable<bool> result)

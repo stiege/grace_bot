@@ -8,19 +8,22 @@
   "Error:QuestionHasBeenAnswered": [
     "This question has already been processed, thanks for your attention."
   ],
+  "Retry:General": [
+    "Sorry, I did not get your answer, please try again."
+  ],
+  "Retry:InputAmount": [
+    "Sorry, I did not get your answer, please select a number."
+  ],
+  "Retry:Confirm": [
+    "Sorry, I did understand, please say yes or no."
+  ],
 
 
   "SelectAnAmount": [
     "Please select the max number of questions you wish to get."
   ],
-  "RetryInputAmount": [
-    "Sorry, I did not get your answer, please select a number."
-  ],
   "InputKeywords": [
     "* Please input keywords for searching, use comma \",\" as a separator to search with multiple keywords.\n* Or input a **SINGLE comma (\",\")** to search for ANY unprocessed questions."
-  ],
-  "RetryInputKeywords": [
-    "Sorry, I did not get your answer, please try again."
   ],
   "NoUnprocessQuestionsFound": [
     "It seems that no unprocessed questions match the query."
@@ -35,7 +38,7 @@
     "You are answering ***{UserName}***'s question:\n***\n{QuestionText}\n***\n**Please give your answer in the next message.**\n"
   ],
   "ConfirmAnswer_{Answer}": [
-    "Your answer was:\n***\n{Answer}\n***\n**Please confirm.**"
+    "Your answer was:\n***\n{Answer}\n***\n"
   ],
   "AnswerReceived": [
     "Thanks, your answer has been received."
