@@ -27,12 +27,12 @@ namespace GraceBot
         #region FeatureToggle
         // Using Dialogs
         // If set to true, then some features will be implemented with dialogs 
-        private const bool USING_DIALOG = true;
+        private readonly bool USING_DIALOG;
 
         // If enabled then some Ranger exclusive features will only be available to 
         // registered rangers (in database). This should ONLY be set to false for 
         // locally debuging purpose.
-        private const bool AUTHORISATION_RANGER = false;
+        private readonly bool AUTHORISATION_RANGER;
         #endregion
 
         private ActivityData ActivityData { get; set; }
@@ -43,14 +43,17 @@ namespace GraceBot
         }
 
         // constructor 
-        public App(IFactory factory)
+        public App(IFactory factory, 
+            bool using_dialog = true, 
+            bool authorisation_ranger = true)
         {
             _factory = factory;
             _filter = _factory.GetActivityFilter();
+            USING_DIALOG = using_dialog;
+            AUTHORISATION_RANGER = authorisation_ranger;
 
             _definition = _factory.GetActivityDefinition();
             _responseHomeManager = _factory.GetResponseManager(DialogTypes.Home.ToString());
-
         }
 
         #region Methods
