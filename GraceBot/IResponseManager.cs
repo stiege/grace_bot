@@ -15,5 +15,12 @@ namespace GraceBot
         /// <param name="key">key</param>
         /// <returns>value</returns>
         string GetResponseByKey(string key);
+
+        /// <summary>
+        /// Return if contains key
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns></returns>
+        bool ContainsKey(string key);
     }
 }

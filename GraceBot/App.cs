@@ -117,7 +117,7 @@ namespace GraceBot
             }
 
             // Respond to triggering words
-            switch (activity.Text.Trim().Split(' ')[0].Substring(0, CommandString.CMD_PREFIX.Length))
+            switch (activity.Text.Trim().Split(' ')[0].Substring(0, CommandString.CMD_PREFIX.Length).ToLower())
             {
                 case CommandString.CMD_PREFIX:
                     {
@@ -131,12 +131,13 @@ namespace GraceBot
                         else
                         {
                             // Execute Command 
-                            var cmd = activity.Text.Split(' ')[0];
+                            var cmd = activity.Text.Split(' ')[0].ToLower();
                             await _factory.GetCommandManager().GetCommand(
                                 cmd, ActivityData.UserRole).Execute(activity);
                         }
                         break;
                     }
+
                 default:
                     {
                         await ProcessActivityAsync();
@@ -174,6 +175,12 @@ namespace GraceBot
                         break;
                     }
 
+                case "Help":
+                {
+                    await ReplyHelp();
+                    break;
+                }
+
                 default:
                     {
                         await _factory.GetBotManager().ReplyToActivityAsync(
@@ -184,12 +191,26 @@ namespace GraceBot
 
         }
 
+        private async Task ReplyHelp()
+        {
+                await Conversation.SendAsync(ActivityData.Activity,() => _factory.MakeIDialog<object>(DialogTypes.Help));
+        }
+
         private async Task ReplyGreeting()
         {
-            string replyText = _responseHomeManager.GetResponseByKey("greeting");
-            replyText += "\n\nPlease ask me questions OR type [HELP] for help.";
+            List<Attachment> attachments = null;
 
-            await _factory.GetBotManager().ReplyToActivityAsync(replyText, ActivityData.Activity);
+            string replyText = _responseHomeManager.GetResponseByKey("greeting");
+            replyText += "!\n\nI'm Gracebot!";
+            replyText += "\n\nPlease ask me questions OR type [//HELP] for help.";
+
+            string imgUrl = "https://static1.squarespace.com/static/556e9677e4b099ded4a2e757/t/556fd5c8e4b063cd79bfe840/1485289348665";
+
+            var attachment = _factory.GetBotManager()
+                .GenerateImageCard("OMGTech", replyText, imgUrl);
+            attachments = new List<Attachment> { attachment };
+
+            await _factory.GetBotManager().ReplyToActivityAsync(null, ActivityData.Activity,attachments);
         }
 
         private async Task ReplyDefinition(LuisResponse response)
@@ -288,15 +309,7 @@ namespace GraceBot
                     // Use Activity.MembersAdded and Activity.MembersRemoved and Activity.Action for info
                     // Not available in all channels
 
-                    List<Attachment> attachments = null;
-
-                    string imgUrl = "https://static1.squarespace.com/static/556e9677e4b099ded4a2e757/t/556fd5c8e4b063cd79bfe840/1485289348665";
-                    var attachment = _factory.GetBotManager()
-                        .GenerateImageCard("Welcome", "I'm Gracebot!", imgUrl);
-                    attachments = new List<Attachment> { attachment };
-
-                    await _factory.GetBotManager().ReplyToActivityAsync(null, ActivityData.Activity, attachments);
-
+                    await ReplyGreeting();
                     break;
                 case ActivityTypes.ContactRelationUpdate:
                     // Handle add/remove from contact lists
