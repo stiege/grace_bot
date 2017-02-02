@@ -26,7 +26,7 @@ namespace GraceBot.Dialogs
     public enum DialogTypes
     {
         NonDialog = 0,
-
+        Help,
         Home,
         GetDefinition,
         Ranger,

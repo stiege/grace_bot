@@ -148,6 +148,10 @@ namespace GraceBot
             var rangerResponses = GetResponseManager(DialogTypes.Ranger.ToString());
             _dialogs.Add(DialogTypes.Ranger, 
                 () => new RangerDialog(this, rangerResponses));
+
+            var helpResponses = GetResponseManager((DialogTypes.Help.ToString()));
+            _dialogs.Add(DialogTypes.Help,
+                () => new HelpDialog(this, helpResponses));
         }
         #endregion
     }

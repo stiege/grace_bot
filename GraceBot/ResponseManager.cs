@@ -24,18 +24,21 @@ namespace GraceBot
 
         public string GetResponseByKey(string key)
         {
-            if (key == null)
+            if (key == null||!ContainsKey(key))
             {
                 return ERROR_MSG;
             }
 
             string[] result;
             _dictionary.TryGetValue(key.ToUpper(), out result);
-            if (result == null || !result.Any())
-                return ERROR_MSG;
 
             int index = new Random().Next(result.Length);
             return result[index];
+        }
+
+        public bool ContainsKey(string key)
+        {
+            return key != null && _dictionary.ContainsKey(key);
         }
     }
 }
