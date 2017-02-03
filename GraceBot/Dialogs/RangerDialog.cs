@@ -117,16 +117,11 @@ namespace GraceBot.Dialogs
                 return;
             }
 
-            try
+            if (_factory.GetDbManager().GetProcessStatus(question.Id) != ProcessStatus.Unprocessed)
             {
-                if (_factory.GetDbManager().GetProcessStatus(question.Id) != ProcessStatus.Unprocessed)
-                    throw new InvalidOperationException(_responses.GetResponseByKey("Error:QuestionHasBeenAnswered"));
-            }
-            catch (Exception ex)
-            {
-                context.PostAsync(_responses.GetResponseByKey("Error:General"));
+                context.PostAsync(_responses.GetResponseByKey("Error:QuestionHasBeenAnswered"));
                 context.Done(false);
-                throw ex;
+                return;
             }
 
             // ***********************************************
