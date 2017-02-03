@@ -33,6 +33,9 @@ namespace GraceBot
         // registered rangers (in database). This should ONLY be set to false for 
         // locally debuging purpose.
         private readonly bool AUTHORISATION_RANGER;
+
+        // A LUIS intent is used when its score is above the threshold.
+        private readonly double INTENT_SCORE_THRESHOLD;
         #endregion
 
         private ActivityData ActivityData { get; set; }
@@ -45,12 +48,16 @@ namespace GraceBot
         // constructor 
         public App(IFactory factory, 
             bool using_dialog = true, 
-            bool authorisation_ranger = true)
+            bool authorisation_ranger = true,
+            double intent_score_threshold = 0.8)
         {
+            if (intent_score_threshold > 1.0 || intent_score_threshold < 0.0)
+                throw new InvalidOperationException("The range of intent_score_threshold must be between 0.0 and 1.0");
             _factory = factory;
             _filter = _factory.GetActivityFilter();
             USING_DIALOG = using_dialog;
             AUTHORISATION_RANGER = authorisation_ranger;
+            INTENT_SCORE_THRESHOLD = intent_score_threshold;
 
             _definition = _factory.GetActivityDefinition();
             _responseHomeManager = _factory.GetResponseManager(DialogTypes.Home.ToString());
@@ -165,7 +172,7 @@ namespace GraceBot
             if (response == null)
                 return;
 
-            var intent = response.topScoringIntent.score > 0.8 ?
+            var intent = response.topScoringIntent.score > INTENT_SCORE_THRESHOLD ?
                 response.topScoringIntent.intent :
                 "no intent";
 
