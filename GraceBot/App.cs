@@ -165,7 +165,11 @@ namespace GraceBot
             if (response == null)
                 return;
 
-            switch (response.topScoringIntent.intent)
+            var intent = response.topScoringIntent.score > 0.8 ?
+                response.topScoringIntent.intent :
+                "no intent";
+
+            switch (intent)
             {
                 case "GetDefinition":
                     {
@@ -188,6 +192,7 @@ namespace GraceBot
                         break;
                     }
 
+                case "no intent":
                 default:
                     {
                         await _factory.GetBotManager().ReplyToActivityAsync(
