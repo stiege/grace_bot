@@ -94,6 +94,7 @@ namespace GraceBot
             var stateClient = activity.GetStateClient();
             var privateConversationData = stateClient.BotState.GetPrivateConversationData(
                 activity.ChannelId, activity.Conversation.Id, activity.From.Id);
+            privateConversationData.SetProperty(property, data);
             stateClient.BotState.SetPrivateConversationData(
                 activity.ChannelId,
                 activity.Conversation.Id,

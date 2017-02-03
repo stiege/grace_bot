@@ -145,6 +145,10 @@ namespace GraceBot
         {
             _dialogs = new Dictionary<DialogTypes, Func<GraceDialog>>();
 
+            var rootResponses = GetResponseManager(DialogTypes.Root.ToString());
+            _dialogs.Add(DialogTypes.Root,
+                () => new RootDialog(this, rootResponses));
+
             var rangerResponses = GetResponseManager(DialogTypes.Ranger.ToString());
             _dialogs.Add(DialogTypes.Ranger, 
                 () => new RangerDialog(this, rangerResponses));

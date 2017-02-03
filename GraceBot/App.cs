@@ -104,7 +104,7 @@ namespace GraceBot
                 if (inDialog != DialogTypes.NonDialog)
                 {
                     await Conversation.SendAsync(activity,
-                        () => _factory.MakeIDialog<object>(inDialog));
+                        () => _factory.MakeIDialog<object>(DialogTypes.Root));
                     return;
                 }
             }
@@ -128,8 +128,9 @@ namespace GraceBot
                         {
                             if (AUTHORISATION_RANGER && _factory.GetApp().ActivityData.UserRole != UserRole.Ranger)
                                 goto default;
+                            _factory.GetBotManager().SetPrivateConversationDataProperty("InDialog", DialogTypes.Ranger);
                             await Conversation.SendAsync(activity, 
-                                () => _factory.MakeIDialog<object>(DialogTypes.Ranger));
+                                () => _factory.MakeIDialog<object>(DialogTypes.Root));
                         }
                         else
                         {
@@ -179,10 +180,13 @@ namespace GraceBot
                     }
 
                 case "Help":
-                {
-                    await ReplyHelp();
-                    break;
-                }
+                    {
+                        _factory.GetBotManager().SetPrivateConversationDataProperty("InDialog", DialogTypes.Help);
+                        await Conversation.SendAsync(
+                            ActivityData.Activity, 
+                            () => _factory.MakeIDialog<object>(DialogTypes.Root));
+                        break;
+                    }
 
                 default:
                     {
@@ -194,18 +198,13 @@ namespace GraceBot
 
         }
 
-        private async Task ReplyHelp()
-        {
-                await Conversation.SendAsync(ActivityData.Activity,() => _factory.MakeIDialog<object>(DialogTypes.Help));
-        }
-
         private async Task ReplyGreeting()
         {
             List<Attachment> attachments = null;
 
             string replyText = _responseHomeManager.GetResponseByKey("greeting");
             replyText += "!\n\nI'm Gracebot!";
-            replyText += "\n\nPlease ask me questions OR type [//HELP] for help.";
+            replyText += "\n\nPlease ask me questions OR type \"help\" for more information.";
 
             string imgUrl = "https://static1.squarespace.com/static/556e9677e4b099ded4a2e757/t/556fd5c8e4b063cd79bfe840/1485289348665";
 

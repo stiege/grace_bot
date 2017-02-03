@@ -12,8 +12,7 @@ namespace GraceBot.Dialogs
     internal class HelpDialog : GraceDialog, IDialog<object>
     {
         public HelpDialog(IFactory factory, IResponseManager responses) : base(factory, responses)
-        {
-        }
+        { }
 
         public async Task StartAsync(IDialogContext context)
         {
@@ -23,56 +22,30 @@ namespace GraceBot.Dialogs
         private async Task MessageReceivedAsync(
             IDialogContext context, IAwaitable<IMessageActivity> argument)
         {
-            context.PrivateConversationData.SetValue("InDialog", DialogTypes.Help);
-
             var activity = await argument;
-            //if (!string.IsNullOrEmpty(activity.Text) && activity.Text.ToLower() != CommandString.HELP.ToLower())
-            //{
-            //    await PostResult(context, activity.Text);
-            //    return;
-            //}
-
-            if (!string.IsNullOrEmpty(activity.Text))
-            {
-                if (activity.Text!="help"&&!_responses.ContainsKey(activity.Text))
-                {
-                    ResetDialog(context);
-                    return ;
-                }
-            }
+            var text = activity.Text?.ToLower();
 
             PromptDialog.Choice(context,
                 AfterSelection,
-                new string[] { "OMGTech", "Grace Bot", "..." },
+                new string[] { "OMGTech", "Grace Bot" },
                _responses.GetResponseByKey("SelectTopic"),
                _responses.GetResponseByKey("RetryTopic")
                );
         }
 
-        private async Task AfterSelection(IDialogContext context, IAwaitable<object> result)
+        private async Task AfterSelection(IDialogContext context, IAwaitable<string> result)
         {
-            var selectedTopic = (string)(await result);
-
-            await PostResult(context, selectedTopic);
-        }
-
-        private async Task PostResult(IDialogContext context, string topic)
-        {
-            if (!_responses.ContainsKey(topic))
+            try
             {
-                ResetDialog(context);
-                return;
-            }
+                var topic = await result;
                 var answer = _responses.GetResponseByKey(topic);
                 await context.PostAsync(answer);
-
+            }
+            catch (TooManyAttemptsException)
+            {
+                context.PostAsync("Abort help.");
+            }
+            context.Done(new object());
         }
-
-        private void ResetDialog(IDialogContext context)
-        {
-            context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
-            context.Done<object>(null);
-        }
-
     }
 }

@@ -179,6 +179,7 @@
     <Compile Include="ActivityData.cs" />
     <Compile Include="ActivityDefinition.cs" />
     <Compile Include="Dialogs\HelpDialog.cs" />
+    <Compile Include="Dialogs\RootDialog.cs" />
     <Compile Include="ResponseManager.cs" />
     <Compile Include="ActivityFilter.cs" />
     <Compile Include="App.cs" />
@@ -242,6 +243,7 @@
     <Content Include="Responses\GetDefinition.json" />
     <Content Include="Responses\Ranger.json" />
     <Content Include="Responses\Help.json" />
+    <Content Include="Responses\Root.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
