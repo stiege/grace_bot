@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraceBot", "GraceBot\GraceB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraceBot.Tests", "GraceBot.Tests\GraceBot.Tests.csproj", "{AAD83F42-BE09-45BA-9C98-12D3BB3C0704}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraceBotAdmin", "GraceBotAdmin\GraceBotAdmin.csproj", "{B4E95BF2-AD82-422B-B089-923FD81A73E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{AAD83F42-BE09-45BA-9C98-12D3BB3C0704}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAD83F42-BE09-45BA-9C98-12D3BB3C0704}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAD83F42-BE09-45BA-9C98-12D3BB3C0704}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4E95BF2-AD82-422B-B089-923FD81A73E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4E95BF2-AD82-422B-B089-923FD81A73E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4E95BF2-AD82-422B-B089-923FD81A73E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4E95BF2-AD82-422B-B089-923FD81A73E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

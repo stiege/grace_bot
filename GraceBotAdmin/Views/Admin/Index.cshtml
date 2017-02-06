@@ -1,0 +1,90 @@
+﻿@model IEnumerable<GraceBotAdmin.Models.ActivityViewModels.ActivityAnswerViewModel>
+
+@{
+    ViewBag.Title = "title";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Questions</h2>
+
+<br/>
+
+<div class="row">
+    @using (Html.BeginForm())
+    {
+        <p>
+            Question: @Html.TextBox("questionKeyWord") 
+        </p>
+        <p>
+            Process Status: @Html.DropDownList("processStatus", EnumHelper.GetSelectList(typeof(GraceBot.Models.ProcessStatus)),"")
+        </p>
+        <input type="submit" value="Search" />
+
+    }
+
+
+</div>
+
+<br/>
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Question)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Channel)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.UserName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Date)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Answer)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.AnsweredBy)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.DateOfQuestionAnswered)
+        </th>
+
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+            {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Question)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Channel)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UserName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Date)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Answer)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AnsweredBy)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DateOfQuestionAnswered)
+            </td>
+
+            @*<td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+            </td>*@
+        </tr>
+    }
+
+</table>
