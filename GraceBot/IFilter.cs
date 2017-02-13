@@ -10,6 +10,6 @@ namespace GraceBot
         /// </summary>
         /// <param name="activity">An activity to be analysed.</param>
         /// <returns></returns>
-        Task<bool> FilterAsync(Activity activity);
+        Task<string> FilterAsync(Activity activity);
     }
 }

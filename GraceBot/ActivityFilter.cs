@@ -7,6 +7,7 @@ namespace GraceBot
     internal class ActivityFilter : IFilter
     {
         private readonly string[] _badWords;
+        private const int MESSAGE_MAX_LENGTH = 200;
 
         // A constructor given a string array of bad words.
         public ActivityFilter(string[] badWords)
@@ -15,13 +16,19 @@ namespace GraceBot
         }
 
         // Analyse whether an activity (user message) contains bad words as an asynchronous operation.
-        public async Task<bool> FilterAsync(Activity activity)
+        public async Task<string> FilterAsync(Activity activity)
         {
-            if (!_badWords.Any(badWord => activity.Text.ToLower().Contains(badWord.ToLower())))
+            if (_badWords.Any(badWord => activity.Text.ToLower().Contains(badWord.ToLower())))
             {
-                return await Task.FromResult(true);
+                return await Task.FromResult("Sorry, bad words detected. Please try again.");
             }
-            return await Task.FromResult(false);
+
+            if (activity.Text.Length > MESSAGE_MAX_LENGTH)
+            {
+                return await Task.FromResult("Sorry, your message is too long. Please try again.");
+            }
+
+            return await Task.FromResult("Passed");
         }
     }
 }

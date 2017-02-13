@@ -82,7 +82,7 @@ namespace GraceBot.Tests
         [Test]
         public async Task RetrieveQuestionsTest()
         {
-            _activity.Text = "/get";
+            _activity.Text = "//get";
             _activity.Type = ActivityTypes.Message;
             var activitiesList = new List<Activity>()
             {
@@ -97,7 +97,7 @@ namespace GraceBot.Tests
                .Returns(activitiesList);
             mFactory.Setup(o => o.GetBotManager().GetUserDataPropertyAsync<bool>(It.IsAny<string>(), It.IsAny<Activity>()))
     .Returns(Task.FromResult(false));
-            mFactory.Setup(o => o.GetActivityFilter().FilterAsync(_activity)).Returns(Task.FromResult(true));
+            mFactory.Setup(o => o.GetActivityFilter().FilterAsync(_activity)).Returns(Task.FromResult("Passed"));
             mFactory.Setup(o => o.GetBotManager().GenerateQuestionsAttachments(activitiesList)).Returns(attachementsList);
 
             var command = new CommandGetQuestion(mFactory.Object);

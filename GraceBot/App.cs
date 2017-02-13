@@ -49,7 +49,7 @@ namespace GraceBot
         public App(IFactory factory, 
             bool using_dialog = true, 
             bool authorisation_ranger = true,
-            double intent_score_threshold = 0.8)
+            double intent_score_threshold = 0.7)
         {
             if (intent_score_threshold > 1.0 || intent_score_threshold < 0.0)
                 throw new InvalidOperationException("The range of intent_score_threshold must be between 0.0 and 1.0");
@@ -93,11 +93,10 @@ namespace GraceBot
             await _factory.GetBotManager().ReplyIsTypingActivityAsync(ActivityData.Activity);
 
             // Filter activity text
-            var isPassedFilter = await _filter.FilterAsync(activity);
-            if (!isPassedFilter)
+            string filterResult = await _filter.FilterAsync(activity);
+            if (!filterResult.Equals("Passed"))
             {
-                await _factory.GetBotManager().ReplyToActivityAsync(
-                    "Sorry, bad words detected, please try again.", activity);
+                await _factory.GetBotManager().ReplyToActivityAsync(filterResult, activity);
                 return;
             }
 
@@ -234,6 +233,13 @@ namespace GraceBot
 
             var subjectEntities = response.entities.Where(e => e.type == "subject").ToList();
 
+            if (subjectEntities.Count == 0)
+            {
+                var replyText = "Sorry, I didn't figure out the topic.";
+                await _factory.GetBotManager().ReplyToActivityAsync(replyText, ActivityData.Activity);
+                return;
+            }
+
             if (subjectEntities.Count > 1)
             {
                 var replyText = "Please ask only one question at a time";
@@ -293,10 +299,10 @@ namespace GraceBot
         {
             var forwardResult = await _factory.GetQuestionSlackManager().ForwardMessageAsync(msg);
 
-            var reply = "Sorry, we currently don't have an answer for your question.";
+            var reply = "Sorry, we currently don't have an answer to your question.";
             if (forwardResult)
             {
-                reply += " Your question has been sent to OMGTech! team, we will get back to you ASAP.";
+                reply += " Your question has been forwarded to OMGTech! team. We will get back to you ASAP.";
             }
 
             await _factory.GetBotManager()

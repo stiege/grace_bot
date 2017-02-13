@@ -20,7 +20,7 @@ namespace GraceBot
         public string FindDefinition(string subject)
         {
             string result;
-            _definitions.TryGetValue(subject.ToUpper(), out result);
+            _definitions.TryGetValue(subject?.ToUpper(), out result);
             return result;
         }
     }
