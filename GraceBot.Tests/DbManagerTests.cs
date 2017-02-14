@@ -82,7 +82,7 @@ namespace GraceBot.Tests
             _mockActivities.Setup(m => m.Add(It.IsAny<ActivityModel>())).Callback<ActivityModel>(a => data.Add(a));
             
             await _dbManager.AddActivity(activity);
-            Assert.AreEqual(activity.Id, data[0].ActivityId);
+            Assert.AreEqual(activity.Id, data[0].Id);
             _mockContext.Verify(m => m.SaveChangesAsync(), Times.Once(), "Context failed to save changes");
         }
 

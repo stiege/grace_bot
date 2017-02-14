@@ -32,5 +32,6 @@ namespace GraceBot.Dialogs
         Home,
         GetDefinition,
         Ranger,
+        RateAnswer,
     }
 }

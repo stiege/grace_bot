@@ -13,6 +13,11 @@ namespace GraceBot.Models
         {
             Id = Guid.NewGuid().ToString();
         }       
+        public UserAccount(params ChannelAccountModel[] channelAccounts)
+        {
+            Id = Guid.NewGuid().ToString();
+            ChannelAccountModels = channelAccounts.ToList();
+        }
 
         [Key]
         public string Id { get; private set; }

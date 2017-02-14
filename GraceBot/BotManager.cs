@@ -15,19 +15,34 @@ namespace GraceBot
             _app = appInstance;
         }
 
-        public async Task<Activity> ReplyToActivityAsync(
-            string replyText, 
-            Activity originalAcitivty,
-            List<Attachment> attachments = null)
+        public async Task<Activity> ReplyToActivityAsync(string replyText, 
+            Activity originalAcitivty = null, 
+            Func<Activity, List<Attachment>> generateAttachments = null, 
+            Action<Activity> invokeBeforeSend = null)
         {
-            var connector = new ConnectorClient(new Uri(originalAcitivty.ServiceUrl));
-            var replyAcitivty = originalAcitivty.CreateReply(replyText);
-            if (attachments != null)
+            if (replyText == null && generateAttachments == null)
+                throw new ArgumentNullException("replyText and attachments cannot both be null.");
+            if (originalAcitivty == null)
             {
-                replyAcitivty.Attachments = attachments;
+                if(_app.ActivityData.Activity == null || 
+                    string.IsNullOrWhiteSpace(_app.ActivityData.Activity.ServiceUrl))
+                    throw new ArgumentException("No valid original Activity can be based on");
+            } else
+            {
+                if (string.IsNullOrWhiteSpace(_app.ActivityData.Activity.ServiceUrl))
+                    throw new ArgumentException("The service url of original Activity must not be null or empty.");
             }
-            await connector.Conversations.ReplyToActivityAsync(replyAcitivty);
-            return replyAcitivty;
+
+            Activity oa = originalAcitivty ?? _app.ActivityData.Activity;
+            Activity ra = oa.CreateReply(replyText);
+            if (ra.Id == null)
+                ra.Id = Guid.NewGuid().ToString();
+
+            ra.Attachments = generateAttachments?.Invoke(ra);
+            invokeBeforeSend?.Invoke(ra);
+            var connector = new ConnectorClient(new Uri(oa.ServiceUrl));
+            await connector.Conversations.ReplyToActivityAsync(ra);
+            return ra;
         }
 
         public async Task ReplyIsTypingActivityAsync(Activity originalActivity)
@@ -108,7 +123,7 @@ namespace GraceBot
             return await stateClient.BotState.DeleteStateForUserAsync(activity.ChannelId, activity.From.Id);
         }
 
-        public Attachment GenerateImageCard(string title, string subTitle, string imgUrl, Dictionary<string, string> buttonsTitleUrlDictionary=null)
+        public Attachment GenerateHeroCard(string title, string subTitle, string imgUrl, Dictionary<string, string> buttonsTitleUrlDictionary=null)
         {
             List<CardImage> cardImages = new List<CardImage>();
             cardImages.Add(new CardImage(url: imgUrl));

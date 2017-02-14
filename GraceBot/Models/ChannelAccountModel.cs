@@ -37,7 +37,7 @@ namespace GraceBot.Models
 
         public string UserAccountId { get; set; }
 
-        public virtual List<ActivityModel> ActivityModels { get; set; }
+        public virtual List<ActivityModel> RelatedActivities { get; set; }
         public virtual UserAccount UserAccount { get; set; }
     }
 }

@@ -18,6 +18,7 @@ namespace GraceBot
         private static IDbManager _dbManagerInstance;
         private static IBotManager _botManagerInstance;
         private static ICommandManager _commandManagerInstance;
+        private static IAnswerManager _answerManagerInstance;
         private static Dictionary<DialogTypes, Func<GraceDialog>> _dialogs;
 
         // disable default constructor
@@ -34,19 +35,6 @@ namespace GraceBot
         {
             _appInstance = _appInstance ?? new App(this);
             return _appInstance;
-        }
-
-        public IDefinition GetActivityDefinition()
-        {
-            var sep = Path.DirectorySeparatorChar;
-            using (var reader =
-                new JsonTextReader(
-                new StreamReader(AppDomain.CurrentDomain.BaseDirectory + $"{sep}Words{sep}dictionary.json"))
-            )
-            {
-                var definitions = new JsonSerializer().Deserialize<Dictionary<string, string>>(reader);
-                return new ActivityDefinition(definitions);
-            }
         }
 
         public ILuisManager GetLuisManager()
@@ -126,6 +114,15 @@ namespace GraceBot
             return new ResponseManager(dictionary);
         }
 
+        public IAnswerManager GetAnswerManager()
+        {
+            if (_answerManagerInstance != null)
+                return _answerManagerInstance;
+
+            _answerManagerInstance = new DefinitionAnswerManager(GetDbManager());
+            return _answerManagerInstance;
+        }
+
         public Dictionary<string, List<string>> GetResponseData(DialogTypes dialogType)
         {
             var sep = Path.DirectorySeparatorChar;
@@ -153,9 +150,13 @@ namespace GraceBot
             _dialogs.Add(DialogTypes.Ranger, 
                 () => new RangerDialog(this, rangerResponses));
 
-            var helpResponses = GetResponseManager((DialogTypes.Help.ToString()));
+            var helpResponses = GetResponseManager(DialogTypes.Help.ToString());
             _dialogs.Add(DialogTypes.Help,
                 () => new HelpDialog(this, helpResponses));
+
+            var rateAnswerResponses = GetResponseManager(DialogTypes.RateAnswer.ToString());
+            _dialogs.Add(DialogTypes.RateAnswer,
+                () => new RateAnswerDialog(this, rateAnswerResponses));
         }
         #endregion
     }

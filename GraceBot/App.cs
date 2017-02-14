@@ -19,7 +19,6 @@ namespace GraceBot
         #region Fields
         private readonly IFactory _factory;
         private readonly IFilter _filter;
-        private static IDefinition _definition;
         private readonly IResponseManager _responseHomeManager;
 
         #endregion
@@ -36,6 +35,10 @@ namespace GraceBot
 
         // A LUIS intent is used when its score is above the threshold.
         private readonly double INTENT_SCORE_THRESHOLD;
+
+        // If enabled, then the locale of all activities will be recognised as "en-UK"
+        // regardless of the setup of users' clients.
+        private readonly bool FORCE_LOCALE_EN;
         #endregion
 
         private ActivityData ActivityData { get; set; }
@@ -48,8 +51,9 @@ namespace GraceBot
         // constructor 
         public App(IFactory factory, 
             bool using_dialog = true, 
-            bool authorisation_ranger = true,
-            double intent_score_threshold = 0.8)
+            bool authorisation_ranger = false,
+            double intent_score_threshold = 0.8,
+            bool force_locale_en = true)
         {
             if (intent_score_threshold > 1.0 || intent_score_threshold < 0.0)
                 throw new InvalidOperationException("The range of intent_score_threshold must be between 0.0 and 1.0");
@@ -58,23 +62,24 @@ namespace GraceBot
             USING_DIALOG = using_dialog;
             AUTHORISATION_RANGER = authorisation_ranger;
             INTENT_SCORE_THRESHOLD = intent_score_threshold;
+            FORCE_LOCALE_EN = force_locale_en;
 
-            _definition = _factory.GetActivityDefinition();
             _responseHomeManager = _factory.GetResponseManager(DialogTypes.Home.ToString());
         }
 
         #region Methods
-
         // Determine activity (message) type and process accordingly as an asynchronous operation.
         public async Task RunAsync(Activity activity)
         {
-            activity.Locale = "en-UK";
+            if(FORCE_LOCALE_EN)
+                activity.Locale = "en-UK";
+
             UserRole userRole;
             try
             {
                 userRole = _factory.GetDbManager().GetUserRole(activity.From.Id);
             }
-            catch (RowNotInTableException ex)
+            catch (RowNotInTableException)
             {
                 userRole = UserRole.User;
             }
@@ -127,7 +132,8 @@ namespace GraceBot
             }
 
             // Respond to triggering words
-            switch (activity.Text.Trim().Split(' ')[0].Substring(0, CommandString.CMD_PREFIX.Length).ToLower())
+            var cmd = activity.Text.Trim().Split(' ');
+            switch (cmd[0].Substring(0, CommandString.CMD_PREFIX.Length))
             {
                 case CommandString.CMD_PREFIX:
                     {
@@ -135,16 +141,21 @@ namespace GraceBot
                         {
                             if (AUTHORISATION_RANGER && _factory.GetApp().ActivityData.UserRole != UserRole.Ranger)
                                 goto default;
-                            _factory.GetBotManager().SetPrivateConversationDataProperty("InDialog", DialogTypes.Ranger);
+                            DialogTypes inDialog = DialogTypes.Ranger;
+                            if (cmd[0] == CommandString.RATE_ANSWER)
+                                inDialog = DialogTypes.RateAnswer;
+                            _factory.GetBotManager().SetPrivateConversationDataProperty("InDialog", inDialog);
+                            _factory.GetBotManager().SetPrivateConversationDataProperty("Command", cmd);
                             await Conversation.SendAsync(activity, 
                                 () => _factory.MakeIDialog<object>(DialogTypes.Root));
                         }
                         else
                         {
-                            // Execute Command 
-                            var cmd = activity.Text.Split(' ')[0].ToLower();
+                            // Rate Answer can only be processed in Dialog
+                            if (cmd[0] == CommandString.RATE_ANSWER)
+                                return;
                             await _factory.GetCommandManager().GetCommand(
-                                cmd, ActivityData.UserRole).Execute(activity);
+                                cmd[0], ActivityData.UserRole).Execute(activity);
                         }
                         break;
                     }
@@ -165,22 +176,22 @@ namespace GraceBot
         {
 
             // get response from Luis
-            var response = await _factory.GetLuisManager()
+            ActivityData.LuisResponse = await _factory.GetLuisManager()
                 .GetResponse(ActivityData.Activity.Text);
 
-            // Check Luis response
-            if (response == null)
+            // TODO: it's probably better that posting back an error message to user
+            if (ActivityData.LuisResponse == null)
                 return;
 
-            var intent = response.topScoringIntent.score > INTENT_SCORE_THRESHOLD ?
-                response.topScoringIntent.intent :
+            var intent = ActivityData.LuisResponse.TopScoringIntent.score > INTENT_SCORE_THRESHOLD ?
+                ActivityData.LuisResponse.TopScoringIntent.intent :
                 "no intent";
 
             switch (intent)
             {
                 case "GetDefinition":
                     {
-                        await ReplyDefinition(response);
+                        await ReplyDefinition(ActivityData.LuisResponse);
                         break;
                     }
 
@@ -212,8 +223,6 @@ namespace GraceBot
 
         private async Task ReplyGreeting()
         {
-            List<Attachment> attachments = null;
-
             string replyText = _responseHomeManager.GetResponseByKey("greeting");
             replyText += "!\n\nI'm Gracebot!";
             replyText += "\n\nPlease ask me questions OR type \"help\" for more information.";
@@ -221,10 +230,10 @@ namespace GraceBot
             string imgUrl = "https://static1.squarespace.com/static/556e9677e4b099ded4a2e757/t/556fd5c8e4b063cd79bfe840/1485289348665";
 
             var attachment = _factory.GetBotManager()
-                .GenerateImageCard("OMGTech", replyText, imgUrl);
-            attachments = new List<Attachment> { attachment };
+                .GenerateHeroCard("OMGTech", replyText, imgUrl);
 
-            await _factory.GetBotManager().ReplyToActivityAsync(null, ActivityData.Activity,attachments);
+            await _factory.GetBotManager().ReplyToActivityAsync(null,
+                null, a => new List<Attachment> { attachment });
         }
 
         private async Task ReplyDefinition(LuisResponse response)
@@ -232,7 +241,7 @@ namespace GraceBot
             // save the activity to db
             await _factory.GetDbManager().AddActivity(ActivityData.Activity, ProcessStatus.Unprocessed);
 
-            var subjectEntities = response.entities.Where(e => e.type == "subject").ToList();
+            var subjectEntities = response.Entities.Where(e => e.Type == "subject").ToList();
 
             if (subjectEntities.Count > 1)
             {
@@ -241,9 +250,8 @@ namespace GraceBot
                 return;
             }
 
-            // Get definition
-            var result = _definition.FindDefinition(subjectEntities.FirstOrDefault()?.entity);
-
+            var subject = subjectEntities.FirstOrDefault()?.Name;
+            var result = _factory.GetAnswerManager().GetAnswerTo(subject);
 
             if (result == null)
             {
@@ -251,13 +259,25 @@ namespace GraceBot
                 return;
             }
 
-            // Reply definition to user
-            var replyActivity = await _factory.GetBotManager().ReplyToActivityAsync(result, ActivityData.Activity);
+            await _factory.GetBotManager()
+                .ReplyToActivityAsync(result, null,
+                a => new List<Attachment> { GenerateRateAnswerCard(subject, a.Id) },
+                a =>
+                {
+                    _factory.GetDbManager().AddActivity(a);
+                    try
+                    {
+                        _factory.GetAnswerManager().AddAnswer(subject, a);
+                    }
+                    catch (Exception e)
+                    {
+                        var s = e.Message;
+                    }
 
-            // Save to and update status in database
-            await _factory.GetDbManager().AddActivity(replyActivity);
-            await _factory.GetDbManager().UpdateActivityProcessStatus(ActivityData.Activity.Id, ProcessStatus.BotReplied);
-
+                });
+            
+            await _factory.GetDbManager()
+                .UpdateActivityProcessStatus(ActivityData.Activity.Id, ProcessStatus.BotReplied);
         }
 
 
@@ -335,6 +355,29 @@ namespace GraceBot
                 case ActivityTypes.Ping:
                     break;
             }
+        }
+
+        private Attachment GenerateRateAnswerCard(string subject, string answerActivityId)
+        {
+            var cardButtons = new List<CardAction>();
+            foreach(AnswerGrade grade in Enum.GetValues(typeof(AnswerGrade)))
+            {
+                if (grade == AnswerGrade.NotRated)
+                    continue;
+                cardButtons.Add(new CardAction()
+                {
+                    Title = grade.ToString().Replace('_', ' '),
+                    Type = ActionTypes.PostBack,
+                    Value = CommandStringFactory.GenerateRateAnswerCmd(subject, grade, answerActivityId)
+                });
+            }
+
+            HeroCard plCard = new HeroCard()
+            {
+                Text = "Rate this answer",
+                Buttons = cardButtons,
+            };
+            return plCard.ToAttachment();
         }
     }
     #endregion

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Bot.Connector;
+using System;
 
 namespace GraceBot
 {
@@ -13,13 +14,18 @@ namespace GraceBot
         /// <param name="originalAcitivty">The activity to reply to.</param>
         /// <param name="attachments">The attachments for reply activity.</param>
         /// <returns></returns>
-        Task<Activity> ReplyToActivityAsync(string replyText, Activity originalAcitivty,List<Attachment> attachments=null);
+        Task<Activity> ReplyToActivityAsync(string replyText,
+            Activity originalAcitivty = null,
+            Func<Activity, List<Attachment>> generateAttachments = null,
+            Action<Activity> invokeBeforeSend = null);
+
         /// <summary>
         /// Reply an IsTyping activity, showing user the IS TYPING status
         /// </summary>
         /// <param name="originalActivity">The activity to reply to</param>
         /// <returns></returns>
         Task ReplyIsTypingActivityAsync(Activity originalActivity);
+        
         /// <summary>
         /// Get user state as an asynchronous operation.
         /// </summary>
@@ -62,6 +68,6 @@ namespace GraceBot
         /// <param name="imgUrl">Image url</param>
         /// <param name="buttonsTitleUrlDictionary">Key valur pair dictionary(Title is key, value is url)</param>
         /// <returns></returns>
-        Attachment GenerateImageCard(string title,string subTitle,string imgUrl,Dictionary<string,string> buttonsTitleUrlDictionary=null );
+        Attachment GenerateHeroCard(string title,string subTitle,string imgUrl,Dictionary<string,string> buttonsTitleUrlDictionary=null);
     }
 }

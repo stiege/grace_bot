@@ -79,5 +79,15 @@ namespace GraceBot
         UserRole GetUserRole(string channelAccountId);
 
         ProcessStatus GetProcessStatus(string activityId);
+
+        void AddAnswer(string subject, string answerActivityId);
+
+        void AddAnswerRating(string subject, AnswerGrade rate, string answerActivityId, string raterChannelAccountId, string commentActivityId = null);
+
+        List<AnswerRating> FindAnswerRating(string subject);
+
+        bool ContainsAnswerRating(string subject, string answerActivityId, string raterChannelAccountId);
+
+        Dictionary<string, string> GetDefinition();
     }
 }

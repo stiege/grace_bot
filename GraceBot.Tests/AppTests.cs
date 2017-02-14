@@ -48,7 +48,7 @@ namespace GraceBot.Tests
             var app = new App(mFactory.Object);
             await app.RunAsync(_activity);
 
-            mFactory.Verify(f => f.GetBotManager().ReplyToActivityAsync("Sorry, bad words detected, please try again.", _activity,null));
+            mFactory.Verify(f => f.GetBotManager().ReplyToActivityAsync("Sorry, bad words detected, please try again.", _activity, null, null));
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace GraceBot.Tests
             var mockFactory = new Mock<IFactory>();
             new App(mockFactory.Object);
             mockFactory.Verify(f => f.GetActivityFilter());
-            mockFactory.Verify(f => f.GetActivityDefinition());
+            mockFactory.Verify(f => f.GetAnswerManager());
         }
 
         [Test]
@@ -79,7 +79,7 @@ namespace GraceBot.Tests
 
             var response = new LuisResponse()
             {
-                topScoringIntent = new Intent()
+                TopScoringIntent = new Intent()
                 {
                     intent = ""
                 }
@@ -100,7 +100,7 @@ namespace GraceBot.Tests
             var expectedReply = "Sorry, we currently don't have an answer for your question";
             expectedReply += "Your question has been sent to OMGTech! team, we will get back to you ASAP.";
 
-            mFactory.Verify(f => f.GetBotManager().ReplyToActivityAsync(expectedReply, _activity,null));
+            mFactory.Verify(f => f.GetBotManager().ReplyToActivityAsync(expectedReply, _activity, null, null));
         }
 
         [Test]
@@ -135,7 +135,7 @@ namespace GraceBot.Tests
 
             var expectedReply = "Thanks, your answer has been received.";
 
-            mFactory.Verify(f => f.GetBotManager().ReplyToActivityAsync(expectedReply, _activity,null));
+            mFactory.Verify(f => f.GetBotManager().ReplyToActivityAsync(expectedReply, _activity, null, null));
         }
     }
 }

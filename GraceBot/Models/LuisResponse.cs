@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -7,33 +8,33 @@ namespace GraceBot.Models
 {
     public class LuisResponse
     {
-        public string query { get; set; }
-        public Intent topScoringIntent { get; set; }
-        public Intent[] intents { get; set; }
-        public Entity[] entities { get; set; }
-        public Dialog dialog { get; set; }
+        public string Query { get; set; }
+        public Intent TopScoringIntent { get; set; }
+        public Intent[] Intents { get; set; }
+        public Entity[] Entities { get; set; }
+        public Dialog Dialog { get; set; }
     }
 
     public class Action
     {
-        public bool triggered { get; set; }
-        public string name { get; set; }
-        public Parameter[] parameters { get; set; }
+        public bool Triggered { get; set; }
+        public string Name { get; set; }
+        public Parameter[] Parameters { get; set; }
     }
 
     public class Parameter
     {
-        public string name { get; set; }
-        public string type { get; set; }
-        public bool required { get; set; }
-        public Value[] value { get; set; }
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public bool Required { get; set; }
+        public Value[] Value { get; set; }
     }
 
     public class Value
     {
-        public string entity { get; set; }
-        public string type { get; set; }
-        public Resolution resolution { get; set; }
+        public string Entity { get; set; }
+        public string Type { get; set; }
+        public Resolution Resolution { get; set; }
     }
 
     public class Resolution
@@ -42,8 +43,8 @@ namespace GraceBot.Models
 
     public class Dialog
     {
-        public string contextId { get; set; }
-        public string status { get; set; }
+        public string ContextId { get; set; }
+        public string Status { get; set; }
     }
 
     public class Intent
@@ -55,11 +56,13 @@ namespace GraceBot.Models
 
     public class Entity
     {
-        public string entity { get; set; }
-        public string type { get; set; }
-        public int startIndex { get; set; }
-        public int endIndex { get; set; }
-        public float score { get; set; }
-        public Resolution resolution { get; set; }
+        [JsonProperty("entity")]
+        public string Name { get; set; }
+
+        public string Type { get; set; }
+        public int StartIndex { get; set; }
+        public int EndIndex { get; set; }
+        public float Score { get; set; }
+        public Resolution Resolution { get; set; }
     }
 }

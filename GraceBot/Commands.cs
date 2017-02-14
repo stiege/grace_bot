@@ -4,14 +4,26 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Bot.Connector;
+using GraceBot.Models;
 
 namespace GraceBot
 {
-    public static class CommandString
+    internal static class CommandString
     {
-        public const string CMD_PREFIX = "//";
-        public const string GET_UNPROCESSED_QUESTIONS = CMD_PREFIX + "get";
-        public const string REPLYING_TO_QUESTION = CMD_PREFIX + "replyActivity";
+        internal const string CMD_PREFIX = "//";
+        internal const string GET_UNPROCESSED_QUESTIONS = CMD_PREFIX + "get";
+        internal const string REPLYING_TO_QUESTION = CMD_PREFIX + "replyActivity";
+        internal const string RATE_ANSWER = CMD_PREFIX + "rateAnswer";
+    }
+
+    internal static class CommandStringFactory
+    {
+        internal static string GenerateRateAnswerCmd(string subject, AnswerGrade answerGrade, string answerActivityId)
+        {
+            var cmd = CommandString.RATE_ANSWER;
+            cmd += $" {subject} {answerGrade.ToString()} {answerActivityId}";
+            return cmd;
+        }
     }
 
     internal class CommandGetQuestion:ICommand
@@ -35,8 +47,8 @@ namespace GraceBot
             // Create reply activity          
             if (unprocessedActivities.Any())
             {
-                var attachments = _botManager.GenerateQuestionsAttachments(unprocessedActivities);
-                await _botManager.ReplyToActivityAsync("Unprocessed Questions:", activity, attachments);
+                await _botManager.ReplyToActivityAsync("Unprocessed Questions:", activity, 
+                    a => _botManager.GenerateQuestionsAttachments(unprocessedActivities));
             }
             else
             {

@@ -30,6 +30,7 @@ namespace GraceBot.Dialogs
                 context.Wait(MessageReceivedAsync);
                 return;
             }
+
             switch(inDialog)
             {
                 case DialogTypes.Ranger:
@@ -50,6 +51,15 @@ namespace GraceBot.Dialogs
                             new CancellationTokenSource().Token);
                         break;
                     }
+                case DialogTypes.RateAnswer:
+                    {
+                        await context.Forward(
+                            _factory.MakeIDialog<object>(inDialog),
+                            AfterRateAnswerDialog,
+                            await argument,
+                            new CancellationTokenSource().Token);
+                        break;
+                    }
                 case DialogTypes.NonDialog:
                     {
                         goto default;
@@ -57,10 +67,20 @@ namespace GraceBot.Dialogs
                 default:
                     {
                         context.PostAsync("Sorry, unexpected errors.");
-                        context.Wait(MessageReceivedAsync);
+                        ResetDialog(context);
                         break;
                     }
             }
+        }
+
+        private Task AfterRateAnswerDialog(IDialogContext context, IAwaitable<object> result)
+        {
+            context.PrivateConversationData.RemoveValue("SubjectOfAnswer");
+            context.PrivateConversationData.RemoveValue("AnswerRate");
+            context.PrivateConversationData.RemoveValue("AnswerActivity");
+            context.PrivateConversationData.RemoveValue("RatingActivity");
+            ResetDialog(context);
+            return Task.CompletedTask;
         }
 
         private Task AfterRangerDialog(IDialogContext context, IAwaitable<bool> result)
@@ -80,6 +100,7 @@ namespace GraceBot.Dialogs
         private void ResetDialog(IDialogContext context)
         {
             context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
+            context.PrivateConversationData.RemoveValue("Command");
             context.Done(new object());
         }
     }

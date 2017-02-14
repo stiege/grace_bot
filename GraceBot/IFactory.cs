@@ -8,7 +8,6 @@ namespace GraceBot
     {   
         IApp GetApp();
         IResponseManager GetResponseManager(string fileName);
-        IDefinition GetActivityDefinition();
         IFilter GetActivityFilter();
         IDbManager GetDbManager();
         ILuisManager GetLuisManager();
@@ -17,6 +16,7 @@ namespace GraceBot
         IBotManager GetBotManager();
         ICommandManager GetCommandManager();
         IDialog<R> MakeIDialog<R>(DialogTypes dialogType);
+        IAnswerManager GetAnswerManager();
         Dictionary<string, List<string>> GetResponseData(DialogTypes dialogType);
     }
 }

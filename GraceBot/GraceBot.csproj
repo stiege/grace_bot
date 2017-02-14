@@ -177,9 +177,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActivityData.cs" />
-    <Compile Include="ActivityDefinition.cs" />
+    <Compile Include="DefinitionAnswerManager.cs" />
     <Compile Include="Dialogs\HelpDialog.cs" />
+    <Compile Include="Dialogs\RateAnswerDialog.cs" />
     <Compile Include="Dialogs\RootDialog.cs" />
+    <Compile Include="IAnswerManager.cs" />
+    <Compile Include="Migrations\201702140108044_AddAnswerRating.cs" />
+    <Compile Include="Migrations\201702140108044_AddAnswerRating.Designer.cs">
+      <DependentUpon>201702140108044_AddAnswerRating.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Answer.cs" />
+    <Compile Include="Models\AnswerRating.cs" />
     <Compile Include="ResponseManager.cs" />
     <Compile Include="ActivityFilter.cs" />
     <Compile Include="App.cs" />
@@ -191,7 +199,6 @@
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Dialogs\RangerDialog.cs" />
     <Compile Include="IBotManager.cs" />
-    <Compile Include="IDefinition.cs" />
     <Compile Include="IEFModels.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="ICommandManager.cs" />
@@ -244,6 +251,7 @@
     <Content Include="Responses\Ranger.json" />
     <Content Include="Responses\Help.json" />
     <Content Include="Responses\Root.json" />
+    <Content Include="Responses\RateAnswer.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -262,6 +270,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201701180355332_AddUniqueNullableIndexForActivityId.resx">
       <DependentUpon>201701180355332_AddUniqueNullableIndexForActivityId.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201702140108044_AddAnswerRating.resx">
+      <DependentUpon>201702140108044_AddAnswerRating.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />

@@ -1,0 +1,30 @@
+﻿{
+  "Error:General": [
+    "Sorry, unexpected error. Please try again later."
+  ],
+  "Error:AlreadyRated": [
+    "Oops, you seem already rated this answer, thanks again!"
+  ],
+  "Retry:CommentOrNot": [
+    "Sorry, please tell me yes or no."
+  ],
+  "Retry:InputComment": [
+    "Sorry, I did not get it, please write the comment again please."
+  ], 
+
+  "CommentOrNot": [
+    "Do you want to leave a comment on the answer?"
+  ],
+  "RatingReceivedWithoutComment": [
+    "Thank you very much! Your rating has been received."
+  ],
+  "RatingReceivedWithComment": [
+    "Thank you very much! Your rating and comment have been received."
+  ],
+  "AbortRatingAnswer": [
+    "Abort rating the answer."
+  ],
+  "InputComment": [
+    "Please write down your comment ^_^"
+  ]
+}

@@ -160,6 +160,8 @@ namespace GraceBot.Dialogs
                 if (!context.PrivateConversationData.TryGetValue("QuestionActivity", out question))
                     throw new InvalidOperationException("Cannot get the question data");
 
+                var subject = _factory.GetLuisManager().GetResponse(question.Text).Result.Entities[0].Name;
+
                 var confirm = await result;
                 Activity answer;
                 if (!context.PrivateConversationData.TryGetValue("AnswerActivity", out answer))
@@ -171,6 +173,8 @@ namespace GraceBot.Dialogs
                         ProcessStatus.BotReplied);
                     await _factory.GetDbManager().UpdateActivityProcessStatus(
                         question.Id, ProcessStatus.Processed);
+                    if(subject != null)
+                        _factory.GetAnswerManager().AddAnswer(subject, answer);
                     await context.PostAsync(_responses.GetResponseByKey("AnswerReceived"));
                     PostBackToUser(question, answer);
                     context.Done(true);

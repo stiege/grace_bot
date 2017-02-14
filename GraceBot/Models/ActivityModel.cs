@@ -18,8 +18,9 @@ namespace GraceBot.Models
         public ActivityModel(Activity activity, ChannelAccountModel from = null, 
             ChannelAccountModel recipient = null, ConversationAccountModel conversation = null)
         {
+            if (activity == null || activity.Id == null)
+                throw new ArgumentException("The activity or the Id of activity cannot be null.");
             _activity = activity;
-            Id = Guid.NewGuid().ToString();
 
             From = from ?? new ChannelAccountModel(_activity.From);
             Recipient = recipient ?? new ChannelAccountModel(_activity.Recipient);
@@ -27,7 +28,11 @@ namespace GraceBot.Models
         }
 
         [Key]
-        public string Id { get; private set; }
+        public string Id
+        {
+            get { return _activity.Id; }
+            set { _activity.Id = value; }
+        }
 
         public string Text
         {
@@ -35,17 +40,10 @@ namespace GraceBot.Models
             set { _activity.Text = value; }
         }
 
-
         public string Type
         {
             get { return _activity.Type; }
             set { _activity.Type = value; }
-        }
-
-        public string ActivityId
-        {
-            get { return _activity.Id; }
-            set { _activity.Id = value; }
         }
 
         public string ServiceUrl

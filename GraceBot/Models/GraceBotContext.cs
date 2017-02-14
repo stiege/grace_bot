@@ -21,6 +21,8 @@ namespace GraceBot.Models
         public virtual DbSet<ChannelAccountModel> ChannelAccounts { get; set; }
         public virtual DbSet<ConversationAccountModel> ConversationAccounts { get; set; }
         public virtual DbSet<UserAccount> UserAccounts { get; set; }
+        public virtual DbSet<Answer> Answers { get; set; }
+        public virtual DbSet<AnswerRating> AnswerRatings { get; set; }
     }
 
 }
