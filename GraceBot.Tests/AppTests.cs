@@ -4,6 +4,7 @@ using NUnit.Framework;
 using Moq;
 using System.Collections.Generic;
 using GraceBot.Models;
+using GraceBot.Dialogs;
 
 namespace GraceBot.Tests
 {
@@ -43,12 +44,13 @@ namespace GraceBot.Tests
 
             var mFactory = new Mock<IFactory>();
             mFactory.Setup(o => o.GetDbManager().GetUserRole(It.IsAny<string>())).Returns(UserRole.Ranger);
-            mFactory.Setup(f => f.GetActivityFilter()).Returns(new ActivityFilter(new string[] { "badword" }));
-            mFactory.Setup(f => f.GetBotManager().GetUserDataPropertyAsync<bool>(It.IsAny<string>(), It.IsAny<Activity>())).Returns(Task.FromResult(false));
+            mFactory.Setup(o => o.GetBotManager().ReplyIsTypingActivityAsync(_activity)).Returns(Task.CompletedTask);
+            mFactory.Setup(o => o.GetActivityFilter().FilterAsync(_activity)).Returns(Task.FromResult("Failed"));
+            
             var app = new App(mFactory.Object);
             await app.RunAsync(_activity);
 
-            mFactory.Verify(f => f.GetBotManager().ReplyToActivityAsync("Sorry, bad words detected, please try again.", _activity, null, null));
+            mFactory.Verify(f => f.GetBotManager().ReplyToActivityAsync("Failed", _activity, null, null));
         }
 
         /// <summary>
@@ -67,6 +69,7 @@ namespace GraceBot.Tests
         [Test]
         public async Task SlackForwardTest()
         {
+
             _activity.Text = "What is Forwarding Question?";
             _activity.Type = ActivityTypes.Message;
 
@@ -81,24 +84,37 @@ namespace GraceBot.Tests
             {
                 TopScoringIntent = new Intent()
                 {
-                    intent = ""
+                    Name = "GetDefinition",
+                    Score = 0.8f,
+                },
+                Entities = new Models.Entity[]
+                {
+                    new Models.Entity(){Type="subject"}
                 }
             };
+
+            string value = null;
 
             mFactory.Setup(o => o.GetDbManager().GetUserRole(It.IsAny<string>())).Returns(UserRole.Ranger);
             mFactory.Setup(o => o.GetBotManager().GetUserDataPropertyAsync<bool>(It.IsAny<string>(), It.IsAny<Activity>()))
                 .Returns(Task.FromResult(false));
-            mFactory.Setup(f => f.GetActivityFilter().FilterAsync(It.IsAny<Activity>())).Returns(Task.FromResult(true));
+            mFactory.Setup(o => o.GetBotManager().ReplyIsTypingActivityAsync(_activity)).Returns(Task.CompletedTask);
+            mFactory.Setup(f => f.GetActivityFilter().FilterAsync(It.IsAny<Activity>())).Returns(Task.FromResult("Passed"));
+
+            mFactory.Setup(o => o.GetBotManager().GetPrivateConversationDataProperty<DialogTypes>(It.IsAny<string>())).Returns(DialogTypes.NonDialog);
+
             mFactory.Setup(o => o.GetDbManager().AddActivity(It.IsAny<Activity>(), It.IsAny<ProcessStatus>())).Returns(Task.CompletedTask);
-            mFactory.Setup(o=>o.GetLuisManager().GetResponse(It.IsAny<string>())).Returns(Task.FromResult(response));
+            mFactory.Setup(o => o.GetLuisManager().GetResponse(It.IsAny<string>())).Returns(Task.FromResult(response));
+            mFactory.Setup(o => o.GetAnswerManager().GetAnswerTo(It.IsAny<string>())).Returns(value);
+
             mFactory.Setup(o => o.GetQuestionSlackManager().ForwardMessageAsync(It.IsAny<string>())).Returns(Task.FromResult(true));
 
             var app = new App(mFactory.Object);
 
             await app.RunAsync(_activity);
 
-            var expectedReply = "Sorry, we currently don't have an answer for your question";
-            expectedReply += "Your question has been sent to OMGTech! team, we will get back to you ASAP.";
+            var expectedReply = "Sorry, we currently don't have an answer to your question.";
+            expectedReply += " Your question has been forwarded to OMGTech! team. We will get back to you ASAP.";
 
             mFactory.Verify(f => f.GetBotManager().ReplyToActivityAsync(expectedReply, _activity, null, null));
         }
@@ -117,7 +133,8 @@ namespace GraceBot.Tests
             var mFactory = new Mock<IFactory>();
 
             mFactory.Setup(o => o.GetDbManager().GetUserRole(It.IsAny<string>())).Returns(UserRole.Ranger);
-
+            mFactory.Setup(o => o.GetBotManager().ReplyIsTypingActivityAsync(_activity)).Returns(Task.CompletedTask);
+            mFactory.Setup(f => f.GetActivityFilter().FilterAsync(It.IsAny<Activity>())).Returns(Task.FromResult("Passed"));
             mFactory.Setup(o => o.GetBotManager().GetUserDataPropertyAsync<bool>(It.IsAny<string>(), It.IsAny<Activity>()))
                 .Returns(Task.FromResult(true));
             mFactory.Setup((o => o.GetDbManager().FindActivity(It.IsAny<string>())))

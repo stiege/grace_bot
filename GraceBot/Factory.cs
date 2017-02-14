@@ -133,7 +133,7 @@ namespace GraceBot
             {
                 return new JsonSerializer().Deserialize<Dictionary<string, List<string>>>(reader);
             }
-            return null;
+            //return null;
         }
 
 

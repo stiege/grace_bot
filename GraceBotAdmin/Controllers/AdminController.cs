@@ -49,7 +49,7 @@ namespace GraceBotAdmin.Controllers
             {
                 if (!string.IsNullOrEmpty(activity.ReplyToId))
                 {
-                    var questionActivity = activityModels.FirstOrDefault(o => o.ActivityId != null && o.ActivityId.Equals(activity.ReplyToId));
+                    var questionActivity = activityModels.FirstOrDefault(o => o.Id != null && o.Id.Equals(activity.ReplyToId));
                     activityViewModels.Add(new ActivityViewModels.ActivityAnswerViewModel()
                     {
                         Question = questionActivity.Text,

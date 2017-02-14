@@ -49,16 +49,16 @@ namespace GraceBot.Models
 
     public class Intent
     {
-        public string intent { get; set; }
-        public float score { get; set; }
-        public Action[] actions { get; set; }
+        [JsonProperty("intent")]
+        public string Name { get; set; }
+        public float Score { get; set; }
+        public Action[] Actions { get; set; }
     }
 
     public class Entity
     {
         [JsonProperty("entity")]
         public string Name { get; set; }
-
         public string Type { get; set; }
         public int StartIndex { get; set; }
         public int EndIndex { get; set; }

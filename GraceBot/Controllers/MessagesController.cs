@@ -61,7 +61,7 @@ namespace GraceBot.Controllers
                 }                
 
                 // TODO could add a feature to save the exceptions which are failed to forward
-                Factory.GetFactory().GetExceptionSlackManager()
+                await Factory.GetFactory().GetExceptionSlackManager()
                     .ForwardMessageAsync(slackMessage);
 
                 Debug.WriteLine(slackMessage);

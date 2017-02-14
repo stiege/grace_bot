@@ -49,7 +49,8 @@ namespace GraceBot
                 _dbManager.AddActivity(answerRecord);
                 AddAnswer(subject, answerRecord);
             }
-            _definitions.Add(subject, answerRecord.Text);
+            if(!_definitions.ContainsKey(subject))
+                _definitions.Add(subject, answerRecord.Text);
         }
 
         public void RateAnswer(string subject, AnswerGrade rate, Activity answerActivity, Activity ratingActivity, Activity commentActivity = null)

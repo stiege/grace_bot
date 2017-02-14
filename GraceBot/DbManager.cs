@@ -214,7 +214,8 @@ namespace GraceBot
 
             foreach(var a in _db.Answers)
             {
-                definitions.Add(a.Subject, a.Text);
+                if(!definitions.ContainsKey(a.Subject))
+                    definitions.Add(a.Subject, a.Text);
             }
             return definitions;
         }
