@@ -178,6 +178,7 @@
   <ItemGroup>
     <Compile Include="ActivityData.cs" />
     <Compile Include="DefinitionAnswerManager.cs" />
+    <Compile Include="Dialogs\AnswerDialog.cs" />
     <Compile Include="Dialogs\HelpDialog.cs" />
     <Compile Include="Dialogs\RateAnswerDialog.cs" />
     <Compile Include="Dialogs\RootDialog.cs" />
@@ -252,6 +253,7 @@
     <Content Include="Responses\Help.json" />
     <Content Include="Responses\Root.json" />
     <Content Include="Responses\RateAnswer.json" />
+    <Content Include="Responses\Answer.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -157,6 +157,10 @@ namespace GraceBot
             var rateAnswerResponses = GetResponseManager(DialogTypes.RateAnswer.ToString());
             _dialogs.Add(DialogTypes.RateAnswer,
                 () => new RateAnswerDialog(this, rateAnswerResponses));
+
+            var answerResponses = GetResponseManager(DialogTypes.Answer.ToString());
+            _dialogs.Add(DialogTypes.Answer,
+                () => new AnswerDialog(this, answerResponses));
         }
         #endregion
     }

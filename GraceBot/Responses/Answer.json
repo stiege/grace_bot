@@ -1,0 +1,21 @@
+﻿{
+  "Error:General": [
+    "Sorry, unexpected error. Please try again later."
+  ],
+  "Error:FailToAnalyseQuestion": [
+    "Sorry, it seems that I am not smart enough to understand your question."
+  ],
+
+  "AskOnlyOneQuestion": [
+    "Please ask only one question at a time."
+  ],
+  "DoNotHaveTheAnswer": [
+    "Sorry, we currently don't have an answer to your question."
+  ],
+  "QuestionBeenForwarded": [
+    "Your question has been forwarded to OMGTech! team. We will get back to you ASAP."
+  ],
+  "PleaseRate": [
+    "Please rate this answer to improve my intelligence."
+  ]
+}

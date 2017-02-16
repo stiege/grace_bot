@@ -30,6 +30,8 @@ namespace GraceBot
         /// <returns></returns>
         Task AddActivity(Activity activity, ProcessStatus processStatus = ProcessStatus.BotMessage);
 
+        Task AddActivity(IMessageActivity messageActivity, ProcessStatus processStatus = ProcessStatus.BotMessage);
+
         /// <summary> 
         /// Updates the process status of an Activity. 
         /// </summary>

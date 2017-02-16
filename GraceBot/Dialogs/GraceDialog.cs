@@ -21,11 +21,24 @@ namespace GraceBot.Dialogs
             _factory = factory;
             _responses = responses;
         }
+
+        protected static bool RemovePrivateConversationData(
+            IDialogContext context, params string[] propertyNames)
+        {
+            bool ok = true;
+            ok = context.PrivateConversationData.RemoveValue("InDialog");
+            ok = context.PrivateConversationData.RemoveValue("Command");
+            foreach (var n in propertyNames)
+            {
+                ok = context.PrivateConversationData.RemoveValue(n);
+            }
+            return ok;
+        }
     }
 
     public enum DialogTypes
     {
-        NonDialog = 0,
+        NoneDialog = 0,
 
         Root,
         Help,
@@ -33,5 +46,6 @@ namespace GraceBot.Dialogs
         GetDefinition,
         Ranger,
         RateAnswer,
+        Answer,
     }
 }

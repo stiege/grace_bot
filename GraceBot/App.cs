@@ -112,7 +112,7 @@ namespace GraceBot
                 // non-root level dialogs should not set the private conversation data anyway
                 var inDialog = _factory.GetBotManager()
                     .GetPrivateConversationDataProperty<DialogTypes>("InDialog");
-                if (inDialog != DialogTypes.NonDialog)
+                if (inDialog != DialogTypes.NoneDialog)
                 {
                     await Conversation.SendAsync(activity,
                         () => _factory.MakeIDialog<object>(DialogTypes.Root));
@@ -184,13 +184,22 @@ namespace GraceBot
 
             var intent = ActivityData.LuisResponse.TopScoringIntent.Score > INTENT_SCORE_THRESHOLD ?
                 ActivityData.LuisResponse.TopScoringIntent.Name :
-                "no intent";
+                "None";
 
             switch (intent)
             {
                 case "GetDefinition":
                     {
-                        await ReplyDefinition(ActivityData.LuisResponse);
+                        if (USING_DIALOG)
+                        {
+                            _factory.GetBotManager().SetPrivateConversationDataProperty("InDialog", DialogTypes.Answer);
+                            await Conversation.SendAsync(ActivityData.Activity,
+                                () => _factory.MakeIDialog<object>(DialogTypes.Root));
+                        }
+                        else
+                        {
+                            await ReplyDefinition(ActivityData.LuisResponse);
+                        }
                         break;
                     }
 
@@ -209,7 +218,7 @@ namespace GraceBot
                         break;
                     }
 
-                case "no intent":
+                case "None":
                 default:
                     {
                         await _factory.GetBotManager().ReplyToActivityAsync(
@@ -264,15 +273,7 @@ namespace GraceBot
                 a =>
                 {
                     _factory.GetDbManager().AddActivity(a);
-                    try
-                    {
-                        _factory.GetAnswerManager().AddAnswer(subject, a);
-                    }
-                    catch (Exception e)
-                    {
-                        var s = e.Message;
-                    }
-
+                    _factory.GetAnswerManager().AddAnswer(subject, a);
                 });
             
             await _factory.GetDbManager()

@@ -26,8 +26,8 @@ namespace GraceBot.Dialogs
             DialogTypes inDialog;
             if (!context.PrivateConversationData.TryGetValue("InDialog", out inDialog))
             {
-                context.PostAsync("Sorry, unexpected errors.");
-                context.Wait(MessageReceivedAsync);
+                await context.PostAsync("Sorry, unexpected errors. It seems that you are not in any Dialog.");
+                context.Done(new object());
                 return;
             }
 
@@ -51,6 +51,15 @@ namespace GraceBot.Dialogs
                             new CancellationTokenSource().Token);
                         break;
                     }
+                case DialogTypes.Answer:
+                    {
+                        await context.Forward(
+                            _factory.MakeIDialog<object>(inDialog),
+                            AfterAnswerDialog,
+                            await argument,
+                            new CancellationTokenSource().Token);
+                        break;
+                    }
                 case DialogTypes.RateAnswer:
                     {
                         await context.Forward(
@@ -60,7 +69,7 @@ namespace GraceBot.Dialogs
                             new CancellationTokenSource().Token);
                         break;
                     }
-                case DialogTypes.NonDialog:
+                case DialogTypes.NoneDialog:
                     {
                         goto default;
                     }
@@ -73,21 +82,23 @@ namespace GraceBot.Dialogs
             }
         }
 
+        private Task AfterAnswerDialog(IDialogContext context, IAwaitable<object> result)
+        {
+            ResetDialog(context);
+            return Task.CompletedTask;
+        }
+
         private Task AfterRateAnswerDialog(IDialogContext context, IAwaitable<object> result)
         {
-            context.PrivateConversationData.RemoveValue("SubjectOfAnswer");
-            context.PrivateConversationData.RemoveValue("AnswerRate");
-            context.PrivateConversationData.RemoveValue("AnswerActivity");
-            context.PrivateConversationData.RemoveValue("RatingActivity");
-            ResetDialog(context);
+            ResetDialog(context, "SubjectOfAnswer",
+                "AnswerRate", "AnswerActivity",
+                "RatingActivity");
             return Task.CompletedTask;
         }
 
         private Task AfterRangerDialog(IDialogContext context, IAwaitable<bool> result)
         {
-            context.PrivateConversationData.RemoveValue("QuestionActivity");
-            context.PrivateConversationData.RemoveValue("AnswerActivity");
-            ResetDialog(context);
+            ResetDialog(context, "QuestionActivity", "AnswerActivity");
             return Task.CompletedTask;
         }
 
@@ -97,10 +108,18 @@ namespace GraceBot.Dialogs
             return Task.CompletedTask;
         }
 
-        private void ResetDialog(IDialogContext context)
+        private void ResetDialog(IDialogContext context, params string[] propertyNames)
         {
-            context.PrivateConversationData.SetValue("InDialog", DialogTypes.NonDialog);
-            context.PrivateConversationData.RemoveValue("Command");
+            context.PrivateConversationData.SetValue("InDialog", DialogTypes.NoneDialog);
+            var propertyList = propertyNames.ToList();
+            propertyList.Add("Command");
+
+            var failedToRemove = new List<string>();
+            foreach (var p in propertyList)
+            {
+                if (!context.PrivateConversationData.RemoveValue(p))
+                    failedToRemove.Add(p);
+            }
             context.Done(new object());
         }
     }

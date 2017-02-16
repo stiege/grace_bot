@@ -31,7 +31,19 @@ namespace GraceBot
                 throw new ArgumentNullException("The activity or activity.Id cannot be null");
             if (_db.Activities.Any(a => a.Id == activity.Id))
                 return;
-            var activityModel = ConvertToModel(activity, processStatus);
+            var activityModel = ConvertActivityToModel(activity, processStatus);
+            AttachReference(activityModel);
+            _db.Activities.Add(activityModel);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task AddActivity(IMessageActivity messageActivity, ProcessStatus processStatus = ProcessStatus.BotMessage)
+        {
+            if(messageActivity == null || messageActivity.Id == null)
+                throw new ArgumentNullException("The messageActivity or messageActivity.Id cannot be null");
+            if (_db.Activities.Any(a => a.Id == messageActivity.Id))
+                return;
+            var activityModel = ConverIMessageActivityToModel(messageActivity, processStatus);
             AttachReference(activityModel);
             _db.Activities.Add(activityModel);
             await _db.SaveChangesAsync();
@@ -83,7 +95,7 @@ namespace GraceBot
             var activities = new List<Activity>();
             foreach (var am in records)
             {
-                activities.Add(ConvertToActivity(am));
+                activities.Add(ConvertModelToActivity(am));
             }
             return activities;
         }
@@ -95,7 +107,7 @@ namespace GraceBot
         {
             var activityRecord = FindActivityModel(id);
             if (activityRecord == null) return null;
-            return ConvertToActivity(activityRecord);
+            return ConvertModelToActivity(activityRecord);
         }
 
         public UserRole GetUserRole(string channelAccountId)
@@ -222,7 +234,7 @@ namespace GraceBot
 
         #region Model Conversion Methods
         // Return an activityModel given an activity and its process status.
-        internal static ActivityModel ConvertToModel(Activity activity, ProcessStatus? processStatus = null)
+        internal static ActivityModel ConvertActivityToModel(Activity activity, ProcessStatus? processStatus = null)
         {
             var model = new ActivityModel(activity);
             if (processStatus != null)
@@ -230,8 +242,41 @@ namespace GraceBot
             return model;
         }
 
+        internal static ActivityModel ConverIMessageActivityToModel(IMessageActivity messageActivity, ProcessStatus? processStatus = null)
+        {
+            Activity activity = new Activity()
+            {
+                Action = null,
+                AttachmentLayout = messageActivity.AttachmentLayout,
+                Attachments = messageActivity.Attachments,
+                ChannelData = messageActivity.ChannelData,
+                ChannelId = messageActivity.ChannelId,
+                Conversation = messageActivity.Conversation,
+                Entities = messageActivity.Entities,
+                From = messageActivity.From,
+                HistoryDisclosed = null,
+                Id = messageActivity.Id,
+                Locale = messageActivity.Locale,
+                LocalTimestamp = messageActivity.LocalTimestamp,
+                MembersAdded = null,
+                MembersRemoved = null,
+                Properties = null,
+                Recipient = messageActivity.Recipient,
+                ReplyToId = messageActivity.ReplyToId,
+                ServiceUrl = messageActivity.ServiceUrl,
+                Summary = messageActivity.Summary,
+                Text = messageActivity.Text,
+                TextFormat = messageActivity.TextFormat,
+                Timestamp = messageActivity.Timestamp,
+                TopicName = null,
+                Type = messageActivity.Type,
+                Value = null
+            };
+            return ConvertActivityToModel(activity, processStatus);
+        }
+
         // Return an activity given an activityModel.
-        internal static Activity ConvertToActivity(ActivityModel activityModel)
+        internal static Activity ConvertModelToActivity(ActivityModel activityModel)
         {
             var from = new ChannelAccount()
             {

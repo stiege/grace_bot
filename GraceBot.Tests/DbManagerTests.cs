@@ -62,8 +62,8 @@ namespace GraceBot.Tests
         public void ConversionDataIntegrityTest()
         {
             var expected = MakeActivity();
-            var model = DbManager.ConvertToModel(expected);
-            var actual = DbManager.ConvertToActivity(model);
+            var model = DbManager.ConvertActivityToModel(expected);
+            var actual = DbManager.ConvertModelToActivity(model);
 
             AssertActivityEquality(expected, actual);
         }
@@ -167,8 +167,8 @@ namespace GraceBot.Tests
             // Setup the old record in the database
             var activity1 = MakeActivity();
             var activity2 = MakeActivity();
-            var data = new List<ActivityModel> { DbManager.ConvertToModel(activity1, ProcessStatus.Unprocessed),
-                DbManager.ConvertToModel(activity2, ProcessStatus.BotReplied) };
+            var data = new List<ActivityModel> { DbManager.ConvertActivityToModel(activity1, ProcessStatus.Unprocessed),
+                DbManager.ConvertActivityToModel(activity2, ProcessStatus.BotReplied) };
             SetupMockDbTable(_mockActivities, data);
 
             // Testing
@@ -192,7 +192,7 @@ namespace GraceBot.Tests
 
             //Tests if activityId is not found in the database
             var activity = MakeActivity();
-            var data = new List<ActivityModel> { DbManager.ConvertToModel(activity, ProcessStatus.Unprocessed), };
+            var data = new List<ActivityModel> { DbManager.ConvertActivityToModel(activity, ProcessStatus.Unprocessed), };
             SetupMockDbTable(_mockActivities, data);
 
             var newActivity = MakeActivity();
@@ -228,7 +228,7 @@ namespace GraceBot.Tests
             var expected = MakeActivity();
             SetupMockDbTable(_mockActivities, new List<ActivityModel>
             {
-                DbManager.ConvertToModel(expected),
+                DbManager.ConvertActivityToModel(expected),
             });
 
             var actual = _dbManager.FindActivity(expected.Id);
@@ -244,7 +244,7 @@ namespace GraceBot.Tests
         {
             SetupMockDbTable(_mockActivities, new List<ActivityModel>
             {
-                DbManager.ConvertToModel(MakeActivity()),
+                DbManager.ConvertActivityToModel(MakeActivity()),
             });
 
             Assert.IsNull(_dbManager.FindActivity(MakeActivity().Id));
@@ -262,7 +262,7 @@ namespace GraceBot.Tests
             Assert.AreEqual(0, questions.Count());
 
             var activity = MakeActivity();
-            data.Add(DbManager.ConvertToModel(activity, ProcessStatus.Unprocessed));
+            data.Add(DbManager.ConvertActivityToModel(activity, ProcessStatus.Unprocessed));
             questions = _dbManager.FindUnprocessedQuestions(5);
             Assert.AreEqual(1, questions.Count());
             Assert.AreEqual(activity.Id, questions[0].Id);
@@ -270,8 +270,8 @@ namespace GraceBot.Tests
 
             for (int i = 0; i < 5; i++)
             {
-                data.Add(DbManager.ConvertToModel(MakeActivity(), ProcessStatus.Unprocessed));
-                data.Add(DbManager.ConvertToModel(MakeActivity(), ProcessStatus.Processed));
+                data.Add(DbManager.ConvertActivityToModel(MakeActivity(), ProcessStatus.Unprocessed));
+                data.Add(DbManager.ConvertActivityToModel(MakeActivity(), ProcessStatus.Processed));
             }
             questions = _dbManager.FindUnprocessedQuestions(10);
             Assert.AreEqual(5, questions.Count());
