@@ -15,25 +15,43 @@ namespace GraceBot.Dialogs
         protected IFactory _factory;
         protected IResponseManager _responses;
 
+        protected DialogTypes _type;
+        protected IList<string> _propertyUsed;
+
         private GraceDialog() { }
-        protected GraceDialog(IFactory factory, IResponseManager responses)
+        protected GraceDialog(DialogTypes type, 
+            IList<string> propertyUsed,
+            IFactory factory, IResponseManager responses)
         {
             _factory = factory;
             _responses = responses;
+
+            _propertyUsed = propertyUsed;
+            _type = type;
         }
 
-        protected static bool RemovePrivateConversationData(
-            IDialogContext context, params string[] propertyNames)
+        protected virtual void ReturnToParentDialog(IDialogContext context,
+            string completeInformation = null, 
+            IDialogResult innerResult = null)
         {
-            bool ok = true;
-            ok = context.PrivateConversationData.RemoveValue("InDialog");
-            ok = context.PrivateConversationData.RemoveValue("Command");
-            foreach (var n in propertyNames)
+            var result = new GraceDialogResult()
             {
-                ok = context.PrivateConversationData.RemoveValue(n);
-            }
-            return ok;
+                Type = _type,
+                PropertiesUsed = _propertyUsed ?? new List<string>(),
+                CompleteInformation = completeInformation,
+                InnerResult = innerResult
+            };
+            context.Done(result);
         }
+    }
+
+    [Serializable]
+    internal class GraceDialogResult : IDialogResult
+    {
+        public DialogTypes Type { get; set; }
+        public string CompleteInformation { get; set; }
+        public IList<string> PropertiesUsed { get; set; }
+        public IDialogResult InnerResult { get; set; }
     }
 
     public enum DialogTypes

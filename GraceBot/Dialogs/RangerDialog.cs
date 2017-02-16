@@ -11,15 +11,22 @@ using System.Data;
 namespace GraceBot.Dialogs
 {
     [Serializable]
-    internal class RangerDialog : GraceDialog, IDialog<bool>
+    internal class RangerDialog : GraceDialog, IDialog<IDialogResult>
     {
+        #region Configurations
+        private const DialogTypes TYPE = DialogTypes.Ranger;
+
+        private static readonly List<string> PROPERTY_USED = new List<string>
+        { "AnswerActivity", "QuestionActivity" };
+        #endregion
+
         #region Fields
         private int _amount;
         private List<string> _keywords;
         #endregion
 
         internal RangerDialog(IFactory factory, IResponseManager responses)
-            : base(factory, responses) { }
+            : base(TYPE, PROPERTY_USED, factory, responses) { }
 
         public async Task StartAsync(IDialogContext context)
         {
@@ -53,7 +60,7 @@ namespace GraceBot.Dialogs
                 default:
                     {
                         await context.PostAsync(_responses.GetResponseByKey("Error:General"));
-                        context.Done(false);
+                        ReturnToParentDialog(context);
                         break;
                     }
             }
@@ -72,7 +79,7 @@ namespace GraceBot.Dialogs
             } catch (TooManyAttemptsException)
             {
                 await context.PostAsync(_responses.GetResponseByKey("AbortSearchingUnprocessedQuestions"));
-                context.Done(false);
+                ReturnToParentDialog(context);
             }
         }
 
@@ -85,7 +92,7 @@ namespace GraceBot.Dialogs
             }
             _keywords.RemoveAll(w => w == "");
             await PostQuestionsToRanger(context);
-            context.Done(true);
+            ReturnToParentDialog(context);
         }
 
         private async Task PostQuestionsToRanger(IDialogContext context)
@@ -113,14 +120,14 @@ namespace GraceBot.Dialogs
             if (!context.PrivateConversationData.TryGetValue("QuestionActivity", out question))
             {
                 await context.PostAsync(_responses.GetResponseByKey("Error:FailToRetrieveQuestion"));
-                context.Done(false);
+                ReturnToParentDialog(context);
                 return;
             }
 
             if (_factory.GetDbManager().GetProcessStatus(question.Id) != ProcessStatus.Unprocessed)
             {
                 context.PostAsync(_responses.GetResponseByKey("Error:QuestionHasBeenAnswered"));
-                context.Done(false);
+                ReturnToParentDialog(context);
                 return;
             }
 
@@ -160,7 +167,8 @@ namespace GraceBot.Dialogs
                 if (!context.PrivateConversationData.TryGetValue("QuestionActivity", out question))
                     throw new InvalidOperationException("Cannot get the question data");
 
-                var subject = _factory.GetLuisManager().GetResponse(question.Text).Result.Entities[0].Name;
+                var luisResultOfQuestion = await _factory.GetLuisManager().GetResponse(question.Text);
+                var subject = luisResultOfQuestion?.Entities[0].Name;
 
                 var confirm = await result;
                 Activity answer;
@@ -177,7 +185,7 @@ namespace GraceBot.Dialogs
                         _factory.GetAnswerManager().AddAnswer(subject, answer);
                     await context.PostAsync(_responses.GetResponseByKey("AnswerReceived"));
                     PostBackToUser(question, answer);
-                    context.Done(true);
+                    ReturnToParentDialog(context);
                     return;
                 }
                 // throw an exception to abort
@@ -195,7 +203,7 @@ namespace GraceBot.Dialogs
             {
                 await context.PostAsync(_responses.GetResponseByKey("Error:General") + "\n\n" + ex.Message);
             }
-            context.Done(false);
+            ReturnToParentDialog(context);
         }
 
         private void PostBackToUser(Activity question, Activity answer)

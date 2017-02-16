@@ -87,7 +87,6 @@ namespace GraceBot
             return new ActivityFilter(File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + $"{sep}BadWords{sep}en"));
         }
 
-
         public IDialog<R> MakeIDialog<R>(DialogTypes dialogType)
         {
             if (_dialogs == null)
@@ -98,6 +97,16 @@ namespace GraceBot
                 return (IDialog<R>) func.Invoke();
             }
             return null;
+        }
+
+        public IDialog<IDialogResult> MakeIDialog(DialogTypes dialogType)
+        {
+            return MakeIDialog<IDialogResult>(dialogType);
+        }
+
+        public IDialog<object> MakeRootDialog()
+        {
+            return MakeIDialog<object>(DialogTypes.Root);
         }
 
         public IResponseManager GetResponseManager(string fileName)

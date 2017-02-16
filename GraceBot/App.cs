@@ -115,7 +115,7 @@ namespace GraceBot
                 if (inDialog != DialogTypes.NoneDialog)
                 {
                     await Conversation.SendAsync(activity,
-                        () => _factory.MakeIDialog<object>(DialogTypes.Root));
+                        () => _factory.MakeRootDialog());
                     return;
                 }
             }
@@ -146,7 +146,7 @@ namespace GraceBot
                             _factory.GetBotManager().SetPrivateConversationDataProperty("InDialog", inDialog);
                             _factory.GetBotManager().SetPrivateConversationDataProperty("Command", cmd);
                             await Conversation.SendAsync(activity, 
-                                () => _factory.MakeIDialog<object>(DialogTypes.Root));
+                                () => _factory.MakeRootDialog());
                         }
                         else
                         {
@@ -194,7 +194,7 @@ namespace GraceBot
                         {
                             _factory.GetBotManager().SetPrivateConversationDataProperty("InDialog", DialogTypes.Answer);
                             await Conversation.SendAsync(ActivityData.Activity,
-                                () => _factory.MakeIDialog<object>(DialogTypes.Root));
+                                () => _factory.MakeRootDialog());
                         }
                         else
                         {
@@ -214,7 +214,7 @@ namespace GraceBot
                         _factory.GetBotManager().SetPrivateConversationDataProperty("InDialog", DialogTypes.Help);
                         await Conversation.SendAsync(
                             ActivityData.Activity, 
-                            () => _factory.MakeIDialog<object>(DialogTypes.Root));
+                            () => _factory.MakeRootDialog());
                         break;
                     }
 

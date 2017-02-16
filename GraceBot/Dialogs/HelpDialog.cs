@@ -9,9 +9,16 @@ using Microsoft.Bot.Connector;
 namespace GraceBot.Dialogs
 {
     [Serializable]
-    internal class HelpDialog : GraceDialog, IDialog<object>
+    internal class HelpDialog : GraceDialog, IDialog<IDialogResult>
     {
-        public HelpDialog(IFactory factory, IResponseManager responses) : base(factory, responses)
+        #region Configurations
+        private const DialogTypes TYPE = DialogTypes.Help;
+
+        private static readonly List<string> PROPERTY_USED = new List<string>
+        { };
+        #endregion
+        public HelpDialog(IFactory factory, IResponseManager responses)
+            : base(TYPE, PROPERTY_USED, factory, responses)
         { }
 
         public async Task StartAsync(IDialogContext context)
@@ -45,7 +52,7 @@ namespace GraceBot.Dialogs
             {
                 context.PostAsync("Abort help.");
             }
-            context.Done(new object());
+            ReturnToParentDialog(context);
         }
     }
 }
