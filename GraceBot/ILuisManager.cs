@@ -7,7 +7,7 @@ using GraceBot.Models;
 
 namespace GraceBot
 {
-    interface ILuisManager
+    public interface ILuisManager
     {
         Task<LuisResponse> GetResponse(string activityText);
     }

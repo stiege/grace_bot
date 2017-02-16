@@ -8,13 +8,13 @@ using System.Data;
 
 namespace GraceBot
 {
-    internal class DefinitionAnswerManager : IAnswerManager
+    public class DefinitionAnswerManager : IAnswerManager
     {
         private readonly Dictionary<string, string> _definitions;
         private readonly IDbManager _dbManager;
 
         // constructor
-        internal DefinitionAnswerManager(IDbManager dbManager)
+        public DefinitionAnswerManager(IDbManager dbManager)
         {
             _definitions = dbManager.GetDefinition();
             _dbManager = dbManager;

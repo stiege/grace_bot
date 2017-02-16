@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace GraceBot
 {
-    interface IAnswerManager
+    public interface IAnswerManager
     {
         string GetAnswerTo(string subject);
         bool ContainsAnswerTo(string subject);

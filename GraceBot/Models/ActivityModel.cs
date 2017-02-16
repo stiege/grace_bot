@@ -10,7 +10,7 @@ namespace GraceBot.Models
     {
         private Activity _activity;
 
-        private ActivityModel()
+        public ActivityModel()
         {
             _activity = new Activity();
         }
