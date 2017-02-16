@@ -12,8 +12,10 @@ namespace GraceBot.Dialogs
     [Serializable]
     internal class RootDialog : GraceDialog, IDialog<object>
     {
+        private static readonly List<string> PROPERTY_USED = new List<string> { };
+
         internal RootDialog(IFactory factory, IResponseManager responses)
-            : base(factory, responses)
+            : base(DialogTypes.Root, PROPERTY_USED, factory, responses)
         { }
 
         public async Task StartAsync(IDialogContext context)
@@ -33,94 +35,42 @@ namespace GraceBot.Dialogs
 
             switch(inDialog)
             {
-                case DialogTypes.Ranger:
-                    {
-                        await context.Forward(
-                            _factory.MakeIDialog<bool>(inDialog),
-                            AfterRangerDialog,
-                            await argument,
-                            new CancellationTokenSource().Token);
-                        break;
-                    }
-                case DialogTypes.Help:
-                    {
-                        await context.Forward(
-                            _factory.MakeIDialog<object>(inDialog),
-                            AfterHelpDialog,
-                            await argument,
-                            new CancellationTokenSource().Token);
-                        break;
-                    }
-                case DialogTypes.Answer:
-                    {
-                        await context.Forward(
-                            _factory.MakeIDialog<object>(inDialog),
-                            AfterAnswerDialog,
-                            await argument,
-                            new CancellationTokenSource().Token);
-                        break;
-                    }
-                case DialogTypes.RateAnswer:
-                    {
-                        await context.Forward(
-                            _factory.MakeIDialog<object>(inDialog),
-                            AfterRateAnswerDialog,
-                            await argument,
-                            new CancellationTokenSource().Token);
-                        break;
-                    }
                 case DialogTypes.NoneDialog:
                     {
-                        goto default;
+                        context.PostAsync("Sorry, unexpected errors.");
+                        ResetDialog(context, PROPERTY_USED);
+                        break;
                     }
                 default:
                     {
-                        context.PostAsync("Sorry, unexpected errors.");
-                        ResetDialog(context);
+                        await context.Forward(_factory.MakeIDialog(inDialog),
+                            AfterChildDialog,
+                            await argument,
+                            new CancellationTokenSource().Token);
                         break;
                     }
             }
         }
 
-        private Task AfterAnswerDialog(IDialogContext context, IAwaitable<object> result)
+        private async Task AfterChildDialog(IDialogContext context, IAwaitable<IDialogResult> result)
         {
-            ResetDialog(context);
-            return Task.CompletedTask;
+            var resultInstance = await result;
+            ResetDialog(context, resultInstance.PropertiesUsed);
         }
 
-        private Task AfterRateAnswerDialog(IDialogContext context, IAwaitable<object> result)
-        {
-            ResetDialog(context, "SubjectOfAnswer",
-                "AnswerRate", "AnswerActivity",
-                "RatingActivity");
-            return Task.CompletedTask;
-        }
-
-        private Task AfterRangerDialog(IDialogContext context, IAwaitable<bool> result)
-        {
-            ResetDialog(context, "QuestionActivity", "AnswerActivity");
-            return Task.CompletedTask;
-        }
-
-        private Task AfterHelpDialog(IDialogContext context, IAwaitable<object> result)
-        {
-            ResetDialog(context);
-            return Task.CompletedTask;
-        }
-
-        private void ResetDialog(IDialogContext context, params string[] propertyNames)
+        private IList<string> ResetDialog(IDialogContext context, IList<string> propertiesToBeRemoved)
         {
             context.PrivateConversationData.SetValue("InDialog", DialogTypes.NoneDialog);
-            var propertyList = propertyNames.ToList();
-            propertyList.Add("Command");
+            propertiesToBeRemoved.Add("Command");
 
             var failedToRemove = new List<string>();
-            foreach (var p in propertyList)
+            foreach (var p in propertiesToBeRemoved)
             {
                 if (!context.PrivateConversationData.RemoveValue(p))
                     failedToRemove.Add(p);
             }
             context.Done(new object());
+            return failedToRemove;
         }
     }
 }

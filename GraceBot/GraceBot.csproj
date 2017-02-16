@@ -215,6 +215,7 @@
     <Compile Include="DefinitionAnswerManager.cs" />
     <Compile Include="Dialogs\AnswerDialog.cs" />
     <Compile Include="Dialogs\HelpDialog.cs" />
+    <Compile Include="Dialogs\IDialogResult.cs" />
     <Compile Include="Dialogs\RateAnswerDialog.cs" />
     <Compile Include="Dialogs\RootDialog.cs" />
     <Compile Include="IAnswerManager.cs" />

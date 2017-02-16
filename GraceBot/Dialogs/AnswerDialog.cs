@@ -9,13 +9,21 @@ using GraceBot.Models;
 namespace GraceBot.Dialogs
 {
     [Serializable]
-    internal class AnswerDialog : GraceDialog, IDialog<object>
+    internal class AnswerDialog : GraceDialog, IDialog<IDialogResult>
     {
+        #region Configurations
+        private const DialogTypes TYPE = DialogTypes.Answer;
+
+        private static readonly List<string> PROPERTY_USED = new List<string>
+        { };
+
+        private const bool BUTTONS_IN_ONE_CARD = true;
+        #endregion
         // if set to false, then the buttons of ratings will lie in separate cards
-        private const bool  BUTTONS_IN_ONE_CARD = true;
+
 
         internal AnswerDialog(IFactory factory, IResponseManager responses)
-            : base(factory, responses) { }
+            : base(TYPE, PROPERTY_USED, factory, responses) { }
 
         public async Task StartAsync(IDialogContext context)
         {
@@ -34,13 +42,13 @@ namespace GraceBot.Dialogs
             if(subjectEntities == null || subjectEntities.Count < 1)
             {
                 await context.PostAsync(_responses.GetResponseByKey("Error:FailToAnalyseQuestion"));
-                context.Done(new object());
+                ReturnToParentDialog(context);
                 return;
             }
             if (subjectEntities.Count > 1)
             {
                 await context.PostAsync(_responses.GetResponseByKey("AskOnlyOneQuestion"));
-                context.Done(new object());
+                ReturnToParentDialog(context);
                 return;
             }
 
@@ -48,7 +56,7 @@ namespace GraceBot.Dialogs
             if (string.IsNullOrWhiteSpace(subject))
             {
                 await context.PostAsync(_responses.GetResponseByKey("Error:FailToAnalyseQuestion"));
-                context.Done(new object());
+                ReturnToParentDialog(context);
                 return;
             }
 
@@ -56,7 +64,7 @@ namespace GraceBot.Dialogs
             if (string.IsNullOrWhiteSpace(answer))
             {
                 await context.PostAsync(await ForwardToRangerChannelAsync(activity.Text));
-                context.Done(new object());
+                ReturnToParentDialog(context);
                 return;
             }
 
@@ -79,7 +87,7 @@ namespace GraceBot.Dialogs
             rateOptions.Attachments = GenerateRateAnswerCard(subject, answerReply.Id);
             await context.PostAsync(rateOptions);
 
-            context.Done(new object());
+            ReturnToParentDialog(context);
         }
 
         private async Task<string> ForwardToRangerChannelAsync(string msg)

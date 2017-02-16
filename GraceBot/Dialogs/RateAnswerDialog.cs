@@ -17,10 +17,17 @@ namespace GraceBot.Dialogs
     /// Command[3] = answerActivityId
     /// </summary>
     [Serializable]
-    internal class RateAnswerDialog : GraceDialog, IDialog<object>
+    internal class RateAnswerDialog : GraceDialog, IDialog<IDialogResult>
     {
+        #region Configurations
+        private const DialogTypes TYPE = DialogTypes.RateAnswer;
+
+        private static readonly List<string> PROPERTY_USED = new List<string>
+        { "SubjectOfAnswer", "AnswerRate", "AnswerActivity", "RatingActivity" };
+        #endregion
+
         internal RateAnswerDialog(IFactory factory, IResponseManager responses)
-            : base(factory, responses) { }
+            : base(TYPE, PROPERTY_USED, factory, responses) { }
 
         public async Task StartAsync(IDialogContext context)
         {
@@ -50,7 +57,7 @@ namespace GraceBot.Dialogs
             if (!string.IsNullOrWhiteSpace(errorMessage))
             {
                 context.PostAsync(_responses.GetResponseByKey("Error:General"));
-                context.Done(new object());
+                ReturnToParentDialog(context);
                 throw new InvalidOperationException(errorMessage);
             }
             var ratingActivity = _factory.GetApp().ActivityData.Activity;
@@ -58,7 +65,7 @@ namespace GraceBot.Dialogs
                 ratingActivity))
             {
                 context.PostAsync(_responses.GetResponseByKey("Error:AlreadyRated"));
-                context.Done(new object());
+                ReturnToParentDialog(context);
                 return;
             }
 
@@ -82,7 +89,7 @@ namespace GraceBot.Dialogs
                 {
                     if(RateTheAnswer(context))
                         await context.PostAsync(_responses.GetResponseByKey("RatingReceivedWithoutComment"));
-                    context.Done(new object());
+                    ReturnToParentDialog(context);
                     return;
                 }
                 PromptDialog.Text(
@@ -95,7 +102,7 @@ namespace GraceBot.Dialogs
             catch (TooManyAttemptsException)
             {
                 context.PostAsync(_responses.GetResponseByKey("AbortRatingAnswer"));
-                context.Done(new object());
+                ReturnToParentDialog(context);
             }
         }
 
@@ -107,7 +114,7 @@ namespace GraceBot.Dialogs
             await _factory.GetDbManager().AddActivity(commentActivity);
             if (RateTheAnswer(context))
                 await context.PostAsync(_responses.GetResponseByKey("RatingReceivedWithComment"));
-            context.Done(new object());
+            ReturnToParentDialog(context);
         }
 
         private bool RateTheAnswer(IDialogContext context)
@@ -127,7 +134,7 @@ namespace GraceBot.Dialogs
                 || answerActivity == null || ratingActivity == null)
             {
                 context.PostAsync(_responses.GetResponseByKey("Error:General"));
-                context.Done(new object());
+                ReturnToParentDialog(context);
                 return false;
             }
             _factory.GetAnswerManager().RateAnswer(subject, rate, answerActivity, ratingActivity, commentActivity);
