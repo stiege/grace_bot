@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<GraceBotAdmin.Models.ActivityViewModels.ActivityAnswerViewModel>
 
 @{
-    ViewBag.Title = "title";
+    ViewBag.Title = "Manage Data";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -18,7 +18,7 @@
         <p>
             Process Status: @Html.DropDownList("processStatus", EnumHelper.GetSelectList(typeof(GraceBot.Models.ProcessStatus)),"")
         </p>
-        <input type="submit" value="Search" />
+        <input type="submit" value="Search" class="btn btn-default" />
 
     }
 
@@ -79,11 +79,9 @@
                 @Html.DisplayFor(modelItem => item.DateOfQuestionAnswered)
             </td>
 
-            @*<td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
-                @Html.ActionLink("Details", "Details", new { id = item.Id }) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
-            </td>*@
+            <td>
+                @Html.ActionLink("Update Answer", "Edit", new { id = item.ActivityId },new { @class = "btn btn-default" }) 
+            </td>
         </tr>
     }
 

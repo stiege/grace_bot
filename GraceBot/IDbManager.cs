@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GraceBot
 {
-    internal interface IDbManager
+    public interface IDbManager
     {
         /// <summary>
         /// Adds into the database an Activity whose process status is as given.

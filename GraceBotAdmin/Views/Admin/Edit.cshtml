@@ -1,0 +1,37 @@
+﻿@model GraceBotAdmin.Models.ActivityViewModels.EditAnswerViewModel
+
+@{
+    ViewBag.Title = "Update Answer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Edit Answer</h2>
+
+
+<br/>
+
+<div class="row">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.QuestionId)
+        @Html.HiddenFor(model => model.AnswerId)
+
+        <div>
+            @Html.LabelFor(model => model.Question, new {htmlAttributes = new {@class = "form-control"}})
+        </div>
+        <div>
+            @Html.DisplayFor(model => model.Question, new {htmlAttributes = new {@class = "form-control"}})
+        </div>
+        <div>
+            @Html.LabelFor(model => model.Answer, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.EditorFor(model => model.Answer, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Answer, "", new { @class = "text-danger" })
+        </div>
+        <input type="submit" value="Submit Answer" class="btn btn-default"/>
+
+    }
+
+
+</div>
+
