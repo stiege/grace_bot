@@ -11,10 +11,7 @@ namespace GraceBotAdmin
         {
             ConfigureAuth(app);
 
-            // Custom datadirectory
-            var path = AppDomain.CurrentDomain.GetData("DataDirectory").ToString();
-            path=path.Replace("GraceBotAdmin", "GraceBot");
-            AppDomain.CurrentDomain.SetData("DataDirectory", path);
+
         }
     }
 }

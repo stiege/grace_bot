@@ -23,6 +23,7 @@ namespace GraceBot.Models
         public virtual DbSet<UserAccount> UserAccounts { get; set; }
         public virtual DbSet<Answer> Answers { get; set; }
         public virtual DbSet<AnswerRating> AnswerRatings { get; set; }
+        public virtual DbSet<TwitterQuestion> TwitterQuestions { get; set; }
     }
 
 }
