@@ -223,8 +223,13 @@
     <Compile Include="Migrations\201702140108044_AddAnswerRating.Designer.cs">
       <DependentUpon>201702140108044_AddAnswerRating.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201702162149334_AddTwitterQuestionModel.cs" />
+    <Compile Include="Migrations\201702162149334_AddTwitterQuestionModel.Designer.cs">
+      <DependentUpon>201702162149334_AddTwitterQuestionModel.cs</DependentUpon>
+    </Compile>
     <Compile Include="Models\Answer.cs" />
     <Compile Include="Models\AnswerRating.cs" />
+    <Compile Include="Models\TwitterQuestion.cs" />
     <Compile Include="ResponseManager.cs" />
     <Compile Include="ActivityFilter.cs" />
     <Compile Include="App.cs" />
@@ -313,6 +318,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201702140108044_AddAnswerRating.resx">
       <DependentUpon>201702140108044_AddAnswerRating.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201702162149334_AddTwitterQuestionModel.resx">
+      <DependentUpon>201702162149334_AddTwitterQuestionModel.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

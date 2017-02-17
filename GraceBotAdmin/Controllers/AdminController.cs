@@ -107,6 +107,12 @@ namespace GraceBotAdmin.Controllers
 
         }
 
+        public async Task<ActionResult> TwitterIndex()
+        {
+            var list =await _db.TwitterQuestions.ToListAsync();
+            return View(list.OrderByDescending(o => o.Timestamp).ToList());
+        }
+
         private ActivityViewModels.ActivityAnswerViewModel GenerateActivityViewModel(ActivityModel questionActivity, ActivityModel answerActivity)
         {
             if (questionActivity == null && answerActivity == null)
